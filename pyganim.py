@@ -1,21 +1,23 @@
-# pyganim.py
-# A sprite animation module for Pygame.
-#
-# By Al Sweigart al@inventwithpython.com
-# http://inventwithpython.com/pyganim
-# Released under a "Simplified BSD" license
-#
-# There's a tutorial (and sample code) on how to use this library at http://inventwithpython.com/pyganim
-# NOTE: This module requires Pygame to be installed to use. Download it from http://pygame.org
-#
-# This should be compatible with both Python 2 and Python 3. Please email any
-# bug reports to Al at al@inventwithpython.com
-#
-#
-# I_don't_like_the_naming_conventions_of_PEP_8
-# JustDealWithIt
-#
-# Version 1
+"""
+pyganim.py
+A sprite animation module for Pygame.
+
+By Al Sweigart al@inventwithpython.com
+http://inventwithpython.com/pyganim
+Released under a "Simplified BSD" license
+
+There's a tutorial (and sample code) on how to use this library at http://inventwithpython.com/pyganim
+NOTE: This module requires Pygame to be installed to use. Download it from http://pygame.org
+
+This should be compatible with both Python 2 and Python 3. Please email any
+bug reports to Al at al@inventwithpython.com
+
+
+I_don't_like_the_naming_conventions_of_PEP_8
+JustDealWithIt
+
+Version 1
+"""
 
 
 # TODO: Feature idea: if the same image file is specified, re-use the Surface object. (Make this optional though.)
@@ -41,15 +43,17 @@ SOUTHEAST = 'southeast'
 
 class PygAnimation():
     def __init__(self, frames, loop=True):
-        # Constructor function for the animation object. Starts off in the STOPPED state.
-        #
-        # @param frames
-        #     A list of tuples for each frame of animation, in one of the following format:
-        #       (image_of_frame<pygame.Surface>, duration_in_seconds<int>)
-        #       (filename_of_image<str>, duration_in_seconds<int>)
-        #     Note that the images and duration cannot be changed. A new PygAnimation object
-        #     will have to be created.
-        # @param loop Tells the animation object to keep playing in a loop.
+        """
+        Constructor function for the animation object. Starts off in the STOPPED state.
+        
+        @param frames
+            A list of tuples for each frame of animation, in one of the following format:
+              (image_of_frame<pygame.Surface>, duration_in_seconds<int>)
+              (filename_of_image<str>, duration_in_seconds<int>)
+            Note that the images and duration cannot be changed. A new PygAnimation object
+            will have to be created.
+        @param loop Tells the animation object to keep playing in a loop.
+        """
 
         # _images stores the pygame.Surface objects of each frame
         self._images = []
@@ -94,8 +98,8 @@ class PygAnimation():
 
 
     def _getStartTimes(self):
-        # Internal method to get the start times based off of the _durations list.
-        # Don't call this method.
+        """Internal method to get the start times based off of the _durations list.
+        Don't call this method."""
         startTimes = [0]
         for i in range(self.numFrames):
             startTimes.append(startTimes[-1] + self._durations[i])
@@ -103,7 +107,9 @@ class PygAnimation():
 
 
     def reverse(self):
-        # Reverses the order of the animations.
+        """
+        Reverses the order of the animations.
+        """
 
         elapsed = self.getElapsed()
         elapsed = self._startTimes[-1] - elapsed
@@ -113,22 +119,26 @@ class PygAnimation():
 
 
     def getCopy(self):
-        # Returns a copy of this PygAnimation object, but one that refers to the
-        # Surface objects of the original so it efficiently uses memory.
-        #
-        # NOTE: Messing around with the original Surface objects will affect all
-        # the copies. If you want to modify the Surface objects, then just make
-        # copies using constructor function instead.
+        """
+        Returns a copy of this PygAnimation object, but one that refers to the
+        Surface objects of the original so it efficiently uses memory.
+        
+        NOTE: Messing around with the original Surface objects will affect all
+        the copies. If you want to modify the Surface objects, then just make
+        copies using constructor function instead.
+        """
         return self.getCopies(1)[0]
 
 
     def getCopies(self, numCopies=1):
-        # Returns a list of copies of this PygAnimation object, but one that refers to the
-        # Surface objects of the original so it efficiently uses memory.
-        #
-        # NOTE: Messing around with the original Surface objects will affect all
-        # the copies. If you want to modify the Surface objects, then just make
-        # copies using constructor function instead.
+        """
+        Returns a list of copies of this PygAnimation object, but one that refers to the
+        Surface objects of the original so it efficiently uses memory.
+        
+        NOTE: Messing around with the original Surface objects will affect all
+        the copies. If you want to modify the Surface objects, then just make
+        copies using constructor function instead.
+        """
         retval = []
         for i in range(numCopies):
             newAnim = PygAnimation('_copy', loop=self._loop)
@@ -142,17 +152,19 @@ class PygAnimation():
 
 
     def blit(self, destSurface, dest):
-        # Draws the appropriate frame of the animation to the destination Surface
-        # at the specified position.
-        #
-        # NOTE: If the visibility attribute is False, then nothing will be drawn.
-        #
-        # @param destSurface
-        #     The Surface object to draw the frame
-        # @param dest
-        #     The position to draw the frame. This is passed to Pygame's Surface's
-        #     blit() function, so it can be either a (top, left) tuple or a Rect
-        #     object.
+        """
+        Draws the appropriate frame of the animation to the destination Surface
+        at the specified position.
+        
+        NOTE: If the visibility attribute is False, then nothing will be drawn.
+        
+        @param destSurface
+            The Surface object to draw the frame
+        @param dest
+            The position to draw the frame. This is passed to Pygame's Surface's
+            blit() function, so it can be either a (top, left) tuple or a Rect
+            object.
+        """
         if self.isFinished():
             self._state = STOPPED
         if not self._visibility or self._state == STOPPED:
@@ -162,9 +174,11 @@ class PygAnimation():
 
 
     def getFrame(self, frameNum):
-        # Returns the pygame.Surface object of the frameNum-th frame in this
-        # animation object. If there is a transformed version of the frame,
-        # it will return that one.
+        """
+        Returns the pygame.Surface object of the frameNum-th frame in this
+        animation object. If there is a transformed version of the frame,
+        it will return that one.
+        """
         if self._transformedImages == []:
             return self._images[frameNum]
         else:
@@ -172,37 +186,43 @@ class PygAnimation():
 
 
     def getCurrentFrame(self):
-        # Returns the pygame.Surface object of the frame that would be drawn
-        # if the blit() method were called right now. If there is a transformed
-        # version of the frame, it will return that one.
+        """
+        Returns the pygame.Surface object of the frame that would be drawn
+        if the blit() method were called right now. If there is a transformed
+        version of the frame, it will return that one.
+        """
         return self.getFrame(self.getCurrentFrameNum())
 
 
     def clearTransforms(self):
-        # Deletes all the transformed frames so that the animation object
-        # displays the original Surfaces/images as they were before
-        # transformation functions were called on them.
-        #
-        # This is handy to do for multiple transformation, where calling
-        # the rotation or scaling functions multiple times results in
-        # degraded/noisy images.
+        """
+        Deletes all the transformed frames so that the animation object
+        displays the original Surfaces/images as they were before
+        transformation functions were called on them.
+        
+        This is handy to do for multiple transformation, where calling
+        the rotation or scaling functions multiple times results in
+        degraded/noisy images.
+        """
         self._transformedImages = []
 
 
     def blitFrameNum(self, frameNum, destSurface, dest):
-        # Draws the specified frame of the animation object. This ignores the
-        # current playing state.
-        #
-        # NOTE: If the visibility attribute is False, then nothing will be drawn.
-        #
-        # @param frameNum
-        #     The frame to draw (the first frame is 0, not 1)
-        # @param destSurface
-        #     The Surface object to draw the frame
-        # @param dest
-        #     The position to draw the frame. This is passed to Pygame's Surface's
-        #     blit() function, so it can be either a (top, left) tuple or a Rect
-        #     object.
+        """
+        Draws the specified frame of the animation object. This ignores the
+        current playing state.
+        
+        NOTE: If the visibility attribute is False, then nothing will be drawn.
+        
+        @param frameNum
+            The frame to draw (the first frame is 0, not 1)
+        @param destSurface
+            The Surface object to draw the frame
+        @param dest
+            The position to draw the frame. This is passed to Pygame's Surface's
+            blit() function, so it can be either a (top, left) tuple or a Rect
+            object.
+        """
         if self.isFinished():
             self._state = STOPPED
         if not self._visibility or self._state == STOPPED:
@@ -211,21 +231,24 @@ class PygAnimation():
 
 
     def blitFrameAtTime(self, elapsed, destSurface, dest):
-        # Draws the frame the is "elapsed" number of seconds into the animation,
-        # rather than the time the animation actually started playing.
-        #
-        # NOTE: If the visibility attribute is False, then nothing will be drawn.
-        #
-        # @param elapsed
-        #     The amount of time into an animation to use when determining which
-        #     frame to draw. blitFrameAtTime() uses this parameter rather than
-        #     the actual time that the animation started playing. (In seconds)
-        # @param destSurface
-        #     The Surface object to draw the frame
-        # @param dest
-        #     The position to draw the frame. This is passed to Pygame's Surface's
-        #     blit() function, so it can be either a (top, left) tuple or a Rect
-        #     object.        elapsed = int(elapsed * self._rate)
+        """
+        Draws the frame the is "elapsed" number of seconds into the animation,
+        rather than the time the animation actually started playing.
+        
+        NOTE: If the visibility attribute is False, then nothing will be drawn.
+        
+        @param elapsed
+            The amount of time into an animation to use when determining which
+            frame to draw. blitFrameAtTime() uses this parameter rather than
+            the actual time that the animation started playing. (In seconds)
+        @param destSurface
+            The Surface object to draw the frame
+        @param dest
+            The position to draw the frame. This is passed to Pygame's Surface's
+            blit() function, so it can be either a (top, left) tuple or a Rect
+            object.
+        """
+        elapsed = int(elapsed * self._rate)
         if self.isFinished():
             self._state = STOPPED
         if not self._visibility or self._state == STOPPED:
@@ -235,13 +258,17 @@ class PygAnimation():
 
 
     def isFinished(self):
-        # Returns True if this animation doesn't loop and has finished playing
-        # all the frames it has.
+        """
+        Returns True if this animation doesn't loop and has finished playing
+        all the frames it has.
+        """
         return not self._loop and self.getElapsed() >= self._startTimes[-1]
 
 
     def play(self, startTime=None):
-        # Start playing the animation.
+        """
+        Start playing the animation.
+        """
 
         if startTime is None:
             startTime = time.time()
@@ -261,7 +288,9 @@ class PygAnimation():
 
 
     def pause(self, startTime=None):
-        # Stop having the animation progress, and keep it at the current frame.
+        """
+        Stop having the animation progress, and keep it at the current frame.
+        """
 
         if startTime is None:
             startTime = time.time()
@@ -278,14 +307,18 @@ class PygAnimation():
 
 
     def stop(self):
-        # Reset the animation to the beginning frame, and do not continue playing
+        """
+        Reset the animation to the beginning frame, and do not continue playing
+        """
         if self._state == STOPPED:
             return # do nothing
         self._state = STOPPED
 
 
     def togglePause(self):
-        # If paused, start playing. If playing, then pause.
+        """
+        If paused, start playing. If playing, then pause.
+        """
         if self._state == PLAYING:
             if self.isFinished():
                 # the one exception: if this animation doesn't loop and it
@@ -300,11 +333,13 @@ class PygAnimation():
 
 
     def setElapsed(self, elapsed):
-        # Sets the playing/paused time (depending on the current state) to a
-        # specific "elapsed time". For example, calling setElapsed(2) would
-        # set this animation object as though it had the play() function called
-        # 2 seconds ago. This is handy if you want to sync multiple animations
-        # together.
+        """
+        Sets the playing/paused time (depending on the current state) to a
+        specific "elapsed time". For example, calling setElapsed(2) would
+        set this animation object as though it had the play() function called
+        2 seconds ago. This is handy if you want to sync multiple animations
+        together.
+        """
         if elapsed < 0:
             # a negative elapsed means "this many seconds from the end"
             elapsed = self._startTimes[-1] + elapsed
@@ -326,8 +361,10 @@ class PygAnimation():
 
 
     def areFramesSameSize(self):
-        # Returns True if all the Surface objects in this animation object
-        # have the same width and height. Otherwise, returns False
+        """
+        Returns True if all the Surface objects in this animation object
+        have the same width and height. Otherwise, returns False
+        """
         width, height = self.getFrame(0).get_size()
         for i in range(len(self._images)):
             if self.getFrame(i).get_size() != (width, height):
@@ -336,9 +373,11 @@ class PygAnimation():
 
 
     def getMaxSize(self):
-        # Goes through all the Surface objects in this animation object
-        # and returns the max width and max height that it finds. (These
-        # widths and heights may be on different Surface objects.)
+        """
+        Goes through all the Surface objects in this animation object
+        and returns the max width and max height that it finds. (These
+        widths and heights may be on different Surface objects.)
+        """
         frameWidths = []
         frameHeights = []
         for i in range(len(self._images)):
@@ -352,18 +391,22 @@ class PygAnimation():
 
 
     def get_rect(self):
-        # Returns a pygame.Rect object for this animation object.
-        # The top and left will be set to 0, 0, and the width and height
-        # will be set to what is returned by getMaxSize().
+        """
+        Returns a pygame.Rect object for this animation object.
+        The top and left will be set to 0, 0, and the width and height
+        will be set to what is returned by getMaxSize().
+        """
         maxWidth, maxHeight = self.getMaxSize()
         return pygame.Rect(0, 0, maxWidth, maxHeight)
 
 
     def anchor(self, anchorPoint):
-        # If the Surface objects are of different sizes, align them all to a
-        # specific "anchor point" (one of the NORTH, SOUTH, SOUTHEAST, etc. constants)
-        #
-        # By default, they are all anchored to the NORTHWEST corner.
+        """
+        If the Surface objects are of different sizes, align them all to a
+        specific "anchor point" (one of the NORTH, SOUTH, SOUTHEAST, etc. constants)
+        
+        By default, they are all anchored to the NORTHWEST corner.
+        """
         if self.areFramesSameSize():
             return # nothing needs to be anchored
             # This check also prevents additional calls to anchor() from doing
@@ -412,29 +455,37 @@ class PygAnimation():
 
 
     def nextFrame(self, jump=1):
-        # Set the elapsed time to the beginning of the next frame.
-        # You can jump ahead by multiple frames by specifying a different
-        # argument for jump.
-        # Negative values have the same effect as calling prevFrame()
+        """
+        Set the elapsed time to the beginning of the next frame.
+        You can jump ahead by multiple frames by specifying a different
+        argument for jump.
+        Negative values have the same effect as calling prevFrame()
+        """
         self.setFrameNum(self.getCurrentFrameNum() + int(jump))
 
 
     def prevFrame(self, jump=1):
-        # Set the elapsed time to the beginning of the previous frame.
-        # You can jump ahead by multiple frames by specifying a different
-        # argument for jump.
-        # Negative values have the same effect as calling nextFrame()
+        """
+        Set the elapsed time to the beginning of the previous frame.
+        You can jump ahead by multiple frames by specifying a different
+        argument for jump.
+        Negative values have the same effect as calling nextFrame()
+        """
         self.setFrameNum(self.getCurrentFrameNum() - int(jump))
 
 
     def getCurrentFrameNum(self):
-        # Return the frame number of the frame that will be currently
-        # displayed if the animation object were drawn right now.
+        """
+        Return the frame number of the frame that will be currently
+        displayed if the animation object were drawn right now.
+        """
         return findStartTime(self._startTimes, self.getElapsed())
 
 
     def setFrameNum(self, frameNum):
-        # Change the elapsed time to the beginning of a specific frame.
+        """
+        Change the elapsed time to the beginning of a specific frame.
+        """
         if self._loop:
             frameNum = frameNum % len(self._images)
         else:
@@ -443,9 +494,11 @@ class PygAnimation():
 
 
     def getElapsed(self):
-        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
+        """
+        NOTE: Do to floating point rounding errors, this doesn't work precisely.
 
-        # Find out how long ago the play()/pause() functions were called.
+        Find out how long ago the play()/pause() functions were called.
+        """
         if self._state == STOPPED:
             # if stopped, then just return 0
             return 0
@@ -470,7 +523,9 @@ class PygAnimation():
 
 
     def rewind(self, seconds=None):
-        # Set the elapsed time back relative to the current elapsed time.
+        """
+        Set the elapsed time back relative to the current elapsed time.
+        """
         if seconds is None:
             self.setElapsed(0.0)
         else:
@@ -479,7 +534,9 @@ class PygAnimation():
 
 
     def fastforward(self, seconds=None):
-        # Set the elapsed time forward relative to the current elapsed time.
+        """
+        Set the elapsed time forward relative to the current elapsed time.
+        """
         if seconds is None:
             self.setElapsed(self._startTimes[-1] - 0.00002) # done to compensate for rounding errors
         else:
@@ -488,7 +545,9 @@ class PygAnimation():
 
 
     def setElapsed(self, elapsed):
-        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
+        """
+        NOTE: Do to floating point rounding errors, this doesn't work precisely.
+        """
         elapsed += 0.00001 # done to compensate for rounding errors
 
         # Set the elapsed time to a specific value.
@@ -506,8 +565,10 @@ class PygAnimation():
 
 
     def _makeTransformedSurfacesIfNeeded(self):
-        # Internal-method. Creates the Surface objects for the _transformedImages list.
-        # Don't call this method.
+        """
+        Internal-method. Creates the Surface objects for the _transformedImages list.
+        Don't call this method.
+        """
         if self._transformedImages == []:
             self._transformedImages = [surf.copy() for surf in self._images]
 
@@ -516,52 +577,64 @@ class PygAnimation():
     # (These are analogous to the pygame.transform.* functions, except they
     # are applied to all frames of the animation object.
     def flip(self, xbool, ybool):
-        # Flips the image horizontally, vertically, or both.
-        # See http://pygame.org/docs/ref/transform.html#pygame.transform.flip
+        """
+        Flips the image horizontally, vertically, or both.
+        See http://pygame.org/docs/ref/transform.html#pygame.transform.flip
+        """
         self._makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.flip(self.getFrame(i), xbool, ybool)
 
 
     def scale(self, width_height):
-        # NOTE: Does not support the DestSurface parameter
-        # Increases or decreases the size of the images.
-        # See http://pygame.org/docs/ref/transform.html#pygame.transform.scale
+        """
+        NOTE: Does not support the DestSurface parameter
+        Increases or decreases the size of the images.
+        See http://pygame.org/docs/ref/transform.html#pygame.transform.scale
+        """
         self._makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.scale(self.getFrame(i), width_height)
 
 
     def rotate(self, angle):
-        # Rotates the image.
-        # See http://pygame.org/docs/ref/transform.html#pygame.transform.rotate
+        """
+        Rotates the image.
+        See http://pygame.org/docs/ref/transform.html#pygame.transform.rotate
+        """
         self._makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.rotate(self.getFrame(i), angle)
 
 
     def rotozoom(self, angle, scale):
-        # Rotates and scales the image simultaneously.
-        # See http://pygame.org/docs/ref/transform.html#pygame.transform.rotozoom
+        """
+        Rotates and scales the image simultaneously.
+        See http://pygame.org/docs/ref/transform.html#pygame.transform.rotozoom
+        """
         self._makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.rotozoom(self.getFrame(i), angle, scale)
 
 
     def scale2x(self):
-        # NOTE: Does not support the DestSurface parameter
-        # Double the size of the image using an efficient algorithm.
-        # See http://pygame.org/docs/ref/transform.html#pygame.transform.scale2x
+        """
+        NOTE: Does not support the DestSurface parameter
+        Double the size of the image using an efficient algorithm.
+        See http://pygame.org/docs/ref/transform.html#pygame.transform.scale2x
+        """
         self._makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.scale2x(self.getFrame(i))
 
 
     def smoothscale(self, width_height):
-        # NOTE: Does not support the DestSurface parameter
-        # Scales the image smoothly. (Computationally more expensive and
-        # slower but produces a better scaled image.)
-        # See http://pygame.org/docs/ref/transform.html#pygame.transform.smoothscale
+        """
+        NOTE: Does not support the DestSurface parameter
+        Scales the image smoothly. (Computationally more expensive and
+        slower but produces a better scaled image.)
+        See http://pygame.org/docs/ref/transform.html#pygame.transform.smoothscale
+        """
         self._makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.smoothscale(self.getFrame(i), width_height)
@@ -583,7 +656,9 @@ class PygAnimation():
     # There's probably a more terse way to generate the following methods,
     # but I don't want to make the code even more unreadable.
     def convert(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.convert
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.convert
+        """
         self._surfaceMethodWrapper('convert', *args, **kwargs)
 
 
