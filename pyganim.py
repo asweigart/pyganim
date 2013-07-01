@@ -56,13 +56,13 @@ class PygAnimation():
         """
 
         # _images stores the pygame.Surface objects of each frame
-        self._images = []
+        self.__images = []
         # _durations stores the durations (in seconds) of each frame.
         # e.g. [1, 1, 2.5] means the first and second frames last one second,
         # and the third frame lasts for two and half seconds.
         self._durations = []
         # _startTimes shows when each frame begins. len(self._startTimes) will
-        # always be one more than len(self._images), because the last number
+        # always be one more than len(self.__images), because the last number
         # will be when the last frame ends, rather than when it starts.
         # The values are in seconds.
         # So self._startTimes[-1] tells you the length of the entire animation.
@@ -92,7 +92,7 @@ class PygAnimation():
                 assert frame[1] > 0, 'Frame %s duration must be greater than zero.' % (i)
                 if type(frame[0]) == str:
                     frame = (pygame.image.load(frame[0]), frame[1])
-                self._images.append(frame[0])
+                self.__images.append(frame[0])
                 self._durations.append(frame[1])
             self._startTimes = self.__getStartTimes()
 
@@ -113,7 +113,7 @@ class PygAnimation():
 
         elapsed = self.getElapsed()
         elapsed = self._startTimes[-1] - elapsed
-        self._images.reverse()
+        self.__images.reverse()
         self._transformedImages.reverse()
         self._durations.reverse()
 
@@ -142,7 +142,7 @@ class PygAnimation():
         retval = []
         for i in range(numCopies):
             newAnim = PygAnimation('_copy', loop=self._loop)
-            newAnim._images = self._images[:]
+            newAnim.__images = self.__images[:]
             newAnim._transformedImages = self._transformedImages[:]
             newAnim._durations = self._durations[:]
             newAnim._startTimes = self._startTimes[:]
@@ -180,7 +180,7 @@ class PygAnimation():
         it will return that one.
         """
         if self._transformedImages == []:
-            return self._images[frameNum]
+            return self.__images[frameNum]
         else:
             return self._transformedImages[frameNum]
 
@@ -366,7 +366,7 @@ class PygAnimation():
         have the same width and height. Otherwise, returns False
         """
         width, height = self.getFrame(0).get_size()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             if self.getFrame(i).get_size() != (width, height):
                 return False
         return True
@@ -380,8 +380,8 @@ class PygAnimation():
         """
         frameWidths = []
         frameHeights = []
-        for i in range(len(self._images)):
-            frameWidth, frameHeight = self._images[i].get_size()
+        for i in range(len(self.__images)):
+            frameWidth, frameHeight = self.__images[i].get_size()
             frameWidths.append(frameWidth)
             frameHeights.append(frameHeight)
         maxWidth = max(frameWidths)
@@ -419,39 +419,39 @@ class PygAnimation():
         halfMaxWidth = int(maxWidth / 2)
         halfMaxHeight = int(maxHeight / 2)
 
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             # go through and copy all frames to a max-sized Surface object
-            # NOTE: This makes changes to the original images in self._images, not the transformed images in self._transformedImages
+            # NOTE: This makes changes to the original images in self.__images, not the transformed images in self._transformedImages
             newSurf = pygame.Surface((maxWidth, maxHeight)) # TODO: this is probably going to have errors since I'm using the default depth.
 
             # set the expanded areas to be transparent
             newSurf = newSurf.convert_alpha()
             newSurf.fill((0,0,0,0))
 
-            frameWidth, frameHeight = self._images[i].get_size()
+            frameWidth, frameHeight = self.__images[i].get_size()
             halfFrameWidth = int(frameWidth / 2)
             halfFrameHeight = int(frameHeight / 2)
 
             # position the Surface objects to the specified anchor point
             if anchorPoint == NORTHWEST:
-                newSurf.blit(self._images[i], (0, 0))
+                newSurf.blit(self.__images[i], (0, 0))
             elif anchorPoint == NORTH:
-                newSurf.blit(self._images[i], (halfMaxWidth - halfFrameWidth, 0))
+                newSurf.blit(self.__images[i], (halfMaxWidth - halfFrameWidth, 0))
             elif anchorPoint == NORTHEAST:
-                newSurf.blit(self._images[i], (maxWidth - frameWidth, 0))
+                newSurf.blit(self.__images[i], (maxWidth - frameWidth, 0))
             elif anchorPoint == WEST:
-                newSurf.blit(self._images[i], (0, halfMaxHeight - halfFrameHeight))
+                newSurf.blit(self.__images[i], (0, halfMaxHeight - halfFrameHeight))
             elif anchorPoint == CENTER:
-                newSurf.blit(self._images[i], (halfMaxWidth - halfFrameWidth, halfMaxHeight - halfFrameHeight))
+                newSurf.blit(self.__images[i], (halfMaxWidth - halfFrameWidth, halfMaxHeight - halfFrameHeight))
             elif anchorPoint == EAST:
-                newSurf.blit(self._images[i], (maxWidth - frameWidth, halfMaxHeight - halfFrameHeight))
+                newSurf.blit(self.__images[i], (maxWidth - frameWidth, halfMaxHeight - halfFrameHeight))
             elif anchorPoint == SOUTHWEST:
-                newSurf.blit(self._images[i], (0, maxHeight - frameHeight))
+                newSurf.blit(self.__images[i], (0, maxHeight - frameHeight))
             elif anchorPoint == SOUTH:
-                newSurf.blit(self._images[i], (halfMaxWidth - halfFrameWidth, maxHeight - frameHeight))
+                newSurf.blit(self.__images[i], (halfMaxWidth - halfFrameWidth, maxHeight - frameHeight))
             elif anchorPoint == SOUTHEAST:
-                newSurf.blit(self._images[i], (maxWidth - frameWidth, maxHeight - frameHeight))
-            self._images[i] = newSurf
+                newSurf.blit(self.__images[i], (maxWidth - frameWidth, maxHeight - frameHeight))
+            self.__images[i] = newSurf
 
 
     def nextFrame(self, jump=1):
@@ -487,9 +487,9 @@ class PygAnimation():
         Change the elapsed time to the beginning of a specific frame.
         """
         if self._loop:
-            frameNum = frameNum % len(self._images)
+            frameNum = frameNum % len(self.__images)
         else:
-            frameNum = getInBetweenValue(0, frameNum, len(self._images)-1)
+            frameNum = getInBetweenValue(0, frameNum, len(self.__images)-1)
         self.setElapsed(self._startTimes[frameNum])
 
 
@@ -570,7 +570,7 @@ class PygAnimation():
         Don't call this method.
         """
         if self._transformedImages == []:
-            self._transformedImages = [surf.copy() for surf in self._images]
+            self._transformedImages = [surf.copy() for surf in self.__images]
 
 
     # Transformation methods.
@@ -582,7 +582,7 @@ class PygAnimation():
         See http://pygame.org/docs/ref/transform.html#pygame.transform.flip
         """
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             self._transformedImages[i] = pygame.transform.flip(self.getFrame(i), xbool, ybool)
 
 
@@ -593,7 +593,7 @@ class PygAnimation():
         See http://pygame.org/docs/ref/transform.html#pygame.transform.scale
         """
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             self._transformedImages[i] = pygame.transform.scale(self.getFrame(i), width_height)
 
 
@@ -603,7 +603,7 @@ class PygAnimation():
         See http://pygame.org/docs/ref/transform.html#pygame.transform.rotate
         """
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             self._transformedImages[i] = pygame.transform.rotate(self.getFrame(i), angle)
 
 
@@ -613,7 +613,7 @@ class PygAnimation():
         See http://pygame.org/docs/ref/transform.html#pygame.transform.rotozoom
         """
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             self._transformedImages[i] = pygame.transform.rotozoom(self.getFrame(i), angle, scale)
 
 
@@ -624,7 +624,7 @@ class PygAnimation():
         See http://pygame.org/docs/ref/transform.html#pygame.transform.scale2x
         """
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             self._transformedImages[i] = pygame.transform.scale2x(self.getFrame(i))
 
 
@@ -636,7 +636,7 @@ class PygAnimation():
         See http://pygame.org/docs/ref/transform.html#pygame.transform.smoothscale
         """
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             self._transformedImages[i] = pygame.transform.smoothscale(self.getFrame(i), width_height)
 
 
@@ -646,10 +646,10 @@ class PygAnimation():
     # They are here for the convenience of the module user. These calls will apply to the transform images,
     # and can have their effects undone by called clearTransforms()
     #
-    # It is not advisable to call these methods on the individual Surface objects in self._images.
+    # It is not advisable to call these methods on the individual Surface objects in self.__images.
     def _surfaceMethodWrapper(self, wrappedMethodName, *args, **kwargs):
         self.__makeTransformedSurfacesIfNeeded()
-        for i in range(len(self._images)):
+        for i in range(len(self.__images)):
             methodToCall = getattr(self._transformedImages[i], wrappedMethodName)
             methodToCall(*args, **kwargs)
 
