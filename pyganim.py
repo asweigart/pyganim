@@ -663,72 +663,93 @@ class PygAnimation():
 
 
     def convert_alpha(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.convert_alpha
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.convert_alpha
+        """
         self._surfaceMethodWrapper('convert_alpha', *args, **kwargs)
 
 
     def set_alpha(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.set_alpha
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.set_alpha
+        """
         self._surfaceMethodWrapper('set_alpha', *args, **kwargs)
 
 
     def get_alpha(self):
-        # See http://pygame.org/docs/ref/surface.html#Surface.get_alpha
-        #
-        # This method raises an error to remind the module user that the
-        # individual Surface objects in this animation object can have
-        # different alpha values. Use animObj.getFrame(0).get_alpha()
-        # instead.
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.get_alpha
+        
+        This method raises an error to remind the module user that the
+        individual Surface objects in this animation object can have
+        different alpha values. Use animObj.getFrame(0).get_alpha()
+        instead.
+        """
         raise NotImplementedError('get_alpha() must be called on a single Surface object, not the PygAnimation object. Use <animObj>.getFrame(0).get_alpha() instead.')
 
 
     def scroll(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.scroll
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.scroll
+        """
         self._surfaceMethodWrapper('scroll', *args, **kwargs)
 
 
     def set_clip(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.set_clip
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.set_clip
+        """
         self._surfaceMethodWrapper('set_clip', *args, **kwargs)
 
 
     def get_clip(self):
-        # See http://pygame.org/docs/ref/surface.html#Surface.get_clip
-        #
-        # This method raises an error to remind the module user that the
-        # individual Surface objects in this animation object can have
-        # different clip values. Use animObj.getFrame(0).get_clip()
-        # instead.
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.get_clip
+        
+        This method raises an error to remind the module user that the
+        individual Surface objects in this animation object can have
+        different clip values. Use animObj.getFrame(0).get_clip()
+        instead.
+        """
         raise NotImplementedError('get_clip() must be called on a single Surface object, not the PygAnimation object. Use <animObj>.getFrame(0).get_clip() instead.')
 
 
     def set_colorkey(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.set_colorkey
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.set_colorkey
+        """
         self._surfaceMethodWrapper('set_colorkey', *args, **kwargs)
 
 
     def get_colorkey(self):
-        # See http://pygame.org/docs/ref/surface.html#Surface.get_colorkey
-        #
-        # This method raises an error to remind the module user that the
-        # individual Surface objects in this animation object can have
-        # different colorkey values. Use animObj.getFrame(0).get_colorkey()
-        # instead.
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.get_colorkey
+        
+        This method raises an error to remind the module user that the
+        individual Surface objects in this animation object can have
+        different colorkey values. Use animObj.getFrame(0).get_colorkey()
+        instead.
+        """
         raise NotImplementedError('get_colorkey() must be called on a single Surface object, not the PygAnimation object. Use <animObj>.getFrame(0).get_colorkey() instead.')
 
 
     def lock(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.unlock
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.unlock
+        """
         self._surfaceMethodWrapper('lock', *args, **kwargs)
 
 
     def unlock(self, *args, **kwargs):
-        # See http://pygame.org/docs/ref/surface.html#Surface.lock
+        """
+        See http://pygame.org/docs/ref/surface.html#Surface.lock
+        """
         self._surfaceMethodWrapper('unlock', *args, **kwargs)
 
 
 
     # Getter and setter methods for properties
+    # TODO Chad make this proper Python OO
     def _propgetrate(self):
         return self._rate
 
@@ -805,10 +826,12 @@ pause()
 
 
 def getInBetweenValue(lowerBound, value, upperBound):
-    # Returns the value within the bounds of the lower and upper bound parameters.
-    # If value is less than lowerBound, then return lowerBound.
-    # If value is greater than upperBound, then return upperBound.
-    # Otherwise, just return value as it is.
+    """
+    Returns the value within the bounds of the lower and upper bound parameters.
+    If value is less than lowerBound, then return lowerBound.
+    If value is greater than upperBound, then return upperBound.
+    Otherwise, just return value as it is.
+    """
     if value < lowerBound:
         return lowerBound
     elif value > upperBound:
@@ -817,11 +840,13 @@ def getInBetweenValue(lowerBound, value, upperBound):
 
 
 def findStartTime(startTimes, target):
-    # With startTimes as a list of sequential numbers and target as a number,
-    # returns the index of the number in startTimes that preceeds target.
-    #
-    # For example, if startTimes was [0, 2, 4.5, 7.3, 10] and target was 6,
-    # then findStartTime() would return 2. If target was 12, returns 4.
+    """
+    With startTimes as a list of sequential numbers and target as a number,
+    returns the index of the number in startTimes that preceeds target.
+    
+    For example, if startTimes was [0, 2, 4.5, 7.3, 10] and target was 6,
+    then findStartTime() would return 2. If target was 12, returns 4.
+    """
     assert startTimes[0] == 0
     lb = 0 # "lb" is lower bound
     ub = len(startTimes) - 1 # "ub" is upper bound
