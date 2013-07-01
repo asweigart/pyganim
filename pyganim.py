@@ -94,10 +94,10 @@ class PygAnimation():
                     frame = (pygame.image.load(frame[0]), frame[1])
                 self._images.append(frame[0])
                 self._durations.append(frame[1])
-            self._startTimes = self._getStartTimes()
+            self._startTimes = self.__getStartTimes()
 
 
-    def _getStartTimes(self):
+    def __getStartTimes(self):
         """Internal method to get the start times based off of the _durations list.
         Don't call this method."""
         startTimes = [0]
@@ -564,7 +564,7 @@ class PygAnimation():
             self._pausedStartTime = rightNow
 
 
-    def _makeTransformedSurfacesIfNeeded(self):
+    def __makeTransformedSurfacesIfNeeded(self):
         """
         Internal-method. Creates the Surface objects for the _transformedImages list.
         Don't call this method.
@@ -581,7 +581,7 @@ class PygAnimation():
         Flips the image horizontally, vertically, or both.
         See http://pygame.org/docs/ref/transform.html#pygame.transform.flip
         """
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.flip(self.getFrame(i), xbool, ybool)
 
@@ -592,7 +592,7 @@ class PygAnimation():
         Increases or decreases the size of the images.
         See http://pygame.org/docs/ref/transform.html#pygame.transform.scale
         """
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.scale(self.getFrame(i), width_height)
 
@@ -602,7 +602,7 @@ class PygAnimation():
         Rotates the image.
         See http://pygame.org/docs/ref/transform.html#pygame.transform.rotate
         """
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.rotate(self.getFrame(i), angle)
 
@@ -612,7 +612,7 @@ class PygAnimation():
         Rotates and scales the image simultaneously.
         See http://pygame.org/docs/ref/transform.html#pygame.transform.rotozoom
         """
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.rotozoom(self.getFrame(i), angle, scale)
 
@@ -623,7 +623,7 @@ class PygAnimation():
         Double the size of the image using an efficient algorithm.
         See http://pygame.org/docs/ref/transform.html#pygame.transform.scale2x
         """
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.scale2x(self.getFrame(i))
 
@@ -635,7 +635,7 @@ class PygAnimation():
         slower but produces a better scaled image.)
         See http://pygame.org/docs/ref/transform.html#pygame.transform.smoothscale
         """
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             self._transformedImages[i] = pygame.transform.smoothscale(self.getFrame(i), width_height)
 
@@ -648,7 +648,7 @@ class PygAnimation():
     #
     # It is not advisable to call these methods on the individual Surface objects in self._images.
     def _surfaceMethodWrapper(self, wrappedMethodName, *args, **kwargs):
-        self._makeTransformedSurfacesIfNeeded()
+        self.__makeTransformedSurfacesIfNeeded()
         for i in range(len(self._images)):
             methodToCall = getattr(self._transformedImages[i], wrappedMethodName)
             methodToCall(*args, **kwargs)
