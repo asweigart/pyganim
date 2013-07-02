@@ -73,13 +73,13 @@ class PygAnimation():
         # and the transformed sprites are kept in _transformedImages.
         self.__transformedImages = []
 
-        self._state = STOPPED # The state is always either PLAYING, PAUSED, or STOPPED
-        self._loop = loop # If True, the animation will keep looping. If False, the animation stops after playing once.
-        self._rate = 1.0 # 2.0 means play the animation twice as fast, 0.5 means twice as slow
-        self._visibility = True # If False, then nothing is drawn when the blit() methods are called
+        self.__state = STOPPED # The state is always either PLAYING, PAUSED, or STOPPED
+        self.__loop = loop # If True, the animation will keep looping. If False, the animation stops after playing once.
+        self.__rate = 1.0 # 2.0 means play the animation twice as fast, 0.5 means twice as slow
+        self.__visibility = True # If False, then nothing is drawn when the blit() methods are called
 
-        self._playingStartTime = 0 # the time that the play() function was last called.
-        self._pausedStartTime = 0 # the time that the pause() function was last called.
+        self.__playingStartTime = 0 # the time that the play() function was last called.
+        self.__pausedStartTime = 0 # the time that the pause() function was last called.
 
         if frames != '_copy': # ('_copy' is passed for frames by the getCopies() method)
             self.numFrames = len(frames)
@@ -142,7 +142,7 @@ class PygAnimation():
         # TODO Chad this is not very clean
         retval = []
         for i in range(numCopies):
-            newAnim = PygAnimation('_copy', loop=self._loop)
+            newAnim = PygAnimation('_copy', loop=self.__loop)
             newAnim.__images = self.__images[:]
             newAnim.__transformedImages = self.__transformedImages[:]
             newAnim.__durations = self.__durations[:]
@@ -167,8 +167,8 @@ class PygAnimation():
             object.
         """
         if self.isFinished():
-            self._state = STOPPED
-        if not self._visibility or self._state == STOPPED:
+            self.__state = STOPPED
+        if not self.__visibility or self.__state == STOPPED:
             return
         frameNum = findStartTime(self.__startTimes, self.getElapsed())
         destSurface.blit(self.getFrame(frameNum), dest)
@@ -225,8 +225,8 @@ class PygAnimation():
             object.
         """
         if self.isFinished():
-            self._state = STOPPED
-        if not self._visibility or self._state == STOPPED:
+            self.__state = STOPPED
+        if not self.__visibility or self.__state == STOPPED:
             return
         destSurface.blit(self.getFrame(frameNum), dest)
 
@@ -249,10 +249,10 @@ class PygAnimation():
             blit() function, so it can be either a (top, left) tuple or a Rect
             object.
         """
-        elapsed = int(elapsed * self._rate)
+        elapsed = int(elapsed * self.__rate)
         if self.isFinished():
-            self._state = STOPPED
-        if not self._visibility or self._state == STOPPED:
+            self.__state = STOPPED
+        if not self.__visibility or self.__state == STOPPED:
             return
         frameNum = findStartTime(self.__startTimes, elapsed)
         destSurface.blit(self.getFrame(frameNum), dest)
@@ -263,7 +263,7 @@ class PygAnimation():
         Returns True if this animation doesn't loop and has finished playing
         all the frames it has.
         """
-        return not self._loop and self.getElapsed() >= self.__startTimes[-1]
+        return not self.__loop and self.getElapsed() >= self.__startTimes[-1]
 
 
     def play(self, startTime=None):
@@ -274,18 +274,18 @@ class PygAnimation():
         if startTime is None:
             startTime = time.time()
 
-        if self._state == PLAYING:
+        if self.__state == PLAYING:
             if self.isFinished():
                 # if the animation doesn't loop and has already finished, then
                 # calling play() causes it to replay from the beginning.
-                self._playingStartTime = startTime
-        elif self._state == STOPPED:
+                self.__playingStartTime = startTime
+        elif self.__state == STOPPED:
             # if animation was stopped, start playing from the beginning
-            self._playingStartTime = startTime
-        elif self._state == PAUSED:
+            self.__playingStartTime = startTime
+        elif self.__state == PAUSED:
             # if animation was paused, start playing from where it was paused
-            self._playingStartTime = startTime - (self._pausedStartTime - self._playingStartTime)
-        self._state = PLAYING
+            self.__playingStartTime = startTime - (self.__pausedStartTime - self.__playingStartTime)
+        self.__state = PLAYING
 
 
     def pause(self, startTime=None):
@@ -296,40 +296,40 @@ class PygAnimation():
         if startTime is None:
             startTime = time.time()
 
-        if self._state == PAUSED:
+        if self.__state == PAUSED:
             return # do nothing
-        elif self._state == PLAYING:
-            self._pausedStartTime = startTime
-        elif self._state == STOPPED:
+        elif self.__state == PLAYING:
+            self.__pausedStartTime = startTime
+        elif self.__state == STOPPED:
             rightNow = time.time()
-            self._playingStartTime = rightNow
-            self._pausedStartTime = rightNow
-        self._state = PAUSED
+            self.__playingStartTime = rightNow
+            self.__pausedStartTime = rightNow
+        self.__state = PAUSED
 
 
     def stop(self):
         """
         Reset the animation to the beginning frame, and do not continue playing
         """
-        if self._state == STOPPED:
+        if self.__state == STOPPED:
             return # do nothing
-        self._state = STOPPED
+        self.__state = STOPPED
 
 
     def togglePause(self):
         """
         If paused, start playing. If playing, then pause.
         """
-        if self._state == PLAYING:
+        if self.__state == PLAYING:
             if self.isFinished():
                 # the one exception: if this animation doesn't loop and it
                 # has finished playing, then toggling the pause will cause
                 # the animation to replay from the beginning.
-                #self._playingStartTime = time.time() # effectively the same as calling play()
+                #self.__playingStartTime = time.time() # effectively the same as calling play()
                 self.play()
             else:
                 self.pause()
-        elif self._state in (PAUSED, STOPPED):
+        elif self.__state in (PAUSED, STOPPED):
             self.play()
 
 
@@ -345,18 +345,18 @@ class PygAnimation():
             # a negative elapsed means "this many seconds from the end"
             elapsed = self.__startTimes[-1] + elapsed
 
-        if self._loop:
+        if self.__loop:
             elapsed = elapsed % self.__startTimes[-1]
         else:
             elapsed = getInBetweenValue(0, elapsed, self.__startTimes[-1])
 
         # set up the playing start time.
         rightNow = time.time()
-        self._playingStartTime = rightNow - elapsed
-        if self._state in (STOPPED, PAUSED):
+        self.__playingStartTime = rightNow - elapsed
+        if self.__state in (STOPPED, PAUSED):
             # if stopped or paused, also set up the paused starting time
-            self._pausedStartTime = rightNow
-            self._state = PAUSED # if stopped, then set to paused
+            self.__pausedStartTime = rightNow
+            self.__state = PAUSED # if stopped, then set to paused
             # "stopped" is only a valid state when the animation is at
             # the very beginning, otherwise, set it to the "paused" state.
 
@@ -487,7 +487,7 @@ class PygAnimation():
         """
         Change the elapsed time to the beginning of a specific frame.
         """
-        if self._loop:
+        if self.__loop:
             frameNum = frameNum % len(self.__images)
         else:
             frameNum = getInBetweenValue(0, frameNum, len(self.__images)-1)
@@ -500,21 +500,21 @@ class PygAnimation():
 
         Find out how long ago the play()/pause() functions were called.
         """
-        if self._state == STOPPED:
+        if self.__state == STOPPED:
             # if stopped, then just return 0
             return 0
         else:
-            if self._state == PLAYING:
+            if self.__state == PLAYING:
                 # if playing, then draw the current frame (based on when the animation
                 # started playing). If not looping and the animation has gone through
                 # all the frames already, then draw the last frame.
-                elapsed = (time.time() - self._playingStartTime) * self._rate
-            elif self._state == PAUSED:
+                elapsed = (time.time() - self.__playingStartTime) * self.__rate
+            elif self.__state == PAUSED:
                 # if paused, then draw the frame that was playing at the time the
                 # PygAnimation object was paused
-                elapsed = (self._pausedStartTime - self._playingStartTime) * self._rate
+                elapsed = (self.__pausedStartTime - self.__playingStartTime) * self.__rate
 
-            if self._loop:
+            if self.__loop:
                 elapsed = elapsed % self.__startTimes[-1]
             else:
                 elapsed = getInBetweenValue(0, elapsed, self.__startTimes[-1])
@@ -552,17 +552,17 @@ class PygAnimation():
         elapsed += 0.00001 # done to compensate for rounding errors
 
         # Set the elapsed time to a specific value.
-        if self._loop:
+        if self.__loop:
             elapsed = elapsed % self.__startTimes[-1]
         else:
             elapsed = getInBetweenValue(0, elapsed, self.__startTimes[-1])
 
         rightNow = time.time()
-        self._playingStartTime = rightNow - (elapsed * self._rate)
+        self.__playingStartTime = rightNow - (elapsed * self.__rate)
 
-        if self._state in (PAUSED, STOPPED):
-            self._state = PAUSED # if stopped, then set to paused
-            self._pausedStartTime = rightNow
+        if self.__state in (PAUSED, STOPPED):
+            self.__state = PAUSED # if stopped, then set to paused
+            self.__pausedStartTime = rightNow
 
 
     def __makeTransformedSurfacesIfNeeded(self):
@@ -752,37 +752,37 @@ class PygAnimation():
     # Getter and setter methods for properties
     # TODO Chad make this proper Python OO
     def _propgetrate(self):
-        return self._rate
+        return self.__rate
 
     def _propsetrate(self, rate):
         rate = float(rate)
         if rate < 0:
             raise ValueError('rate must be greater than 0.')
-        self._rate = rate
+        self.__rate = rate
 
     rate = property(_propgetrate, _propsetrate)
 
 
     def _propgetloop(self):
-        return self._loop
+        return self.__loop
 
     def _propsetloop(self, loop):
-        if self._state == PLAYING and self._loop and not loop:
+        if self.__state == PLAYING and self.__loop and not loop:
             # if we are turning off looping while the animation is playing,
             # we need to modify the _playingStartTime so that the rest of
             # the animation will play, and then stop. (Otherwise, the
             # animation will immediately stop playing if it has already looped.)
-            self._playingStartTime = time.time() - self.getElapsed()
-        self._loop = bool(loop)
+            self.__playingStartTime = time.time() - self.getElapsed()
+        self.__loop = bool(loop)
 
     loop = property(_propgetloop, _propsetloop)
 
 
     def _propgetstate(self):
         if self.isFinished():
-            self._state = STOPPED # if finished playing, then set state to STOPPED.
+            self.__state = STOPPED # if finished playing, then set state to STOPPED.
 
-        return self._state
+        return self.__state
 
     def _propsetstate(self, state):
         if state not in (PLAYING, PAUSED, STOPPED):
@@ -798,10 +798,10 @@ class PygAnimation():
 
 
     def _propgetvisibility(self):
-        return self._visibility
+        return self.__visibility
 
     def _propsetvisibility(self, visibility):
-        self._visibility = bool(visibility)
+        self.__visibility = bool(visibility)
 
     visibility = property(_propgetvisibility, _propsetvisibility)
 
