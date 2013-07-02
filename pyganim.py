@@ -111,7 +111,7 @@ class PygAnimation():
         Reverses the order of the animations.
         """
 
-        elapsed = self.getElapsed()
+        elapsed = self.elapsed
         elapsed = self.__startTimes[-1] - elapsed
         self.__images.reverse()
         self.__transformedImages.reverse()
@@ -170,7 +170,7 @@ class PygAnimation():
             self.__state = STOPPED
         if not self.__visibility or self.__state == STOPPED:
             return
-        frameNum = findStartTime(self.__startTimes, self.getElapsed())
+        frameNum = findStartTime(self.__startTimes, self.elapsed)
         destSurface.blit(self.getFrame(frameNum), dest)
 
 
@@ -263,7 +263,7 @@ class PygAnimation():
         Returns True if this animation doesn't loop and has finished playing
         all the frames it has.
         """
-        return not self.__loop and self.getElapsed() >= self.__startTimes[-1]
+        return not self.__loop and self.elapsed >= self.__startTimes[-1]
 
 
     def play(self, startTime=None):
@@ -332,8 +332,38 @@ class PygAnimation():
         elif self.__state in (PAUSED, STOPPED):
             self.play()
 
+    @property
+    def elapsed(self):
+        """
+        NOTE: Do to floating point rounding errors, this doesn't work precisely.
 
-    def setElapsed(self, elapsed):
+        Find out how long ago the play()/pause() functions were called.
+        """
+        if self.__state == STOPPED:
+            # if stopped, then just return 0
+            return 0
+        else:
+            if self.__state == PLAYING:
+                # if playing, then draw the current frame (based on when the animation
+                # started playing). If not looping and the animation has gone through
+                # all the frames already, then draw the last frame.
+                elapsed = (time.time() - self.__playingStartTime) * self.__rate
+            elif self.__state == PAUSED:
+                # if paused, then draw the frame that was playing at the time the
+                # PygAnimation object was paused
+                elapsed = (self.__pausedStartTime - self.__playingStartTime) * self.__rate
+
+            if self.__loop:
+                elapsed = elapsed % self.__startTimes[-1]
+            else:
+                elapsed = getInBetweenValue(0, elapsed, self.__startTimes[-1])
+
+            elapsed += 0.00001 # done to compensate for rounding errors
+            return elapsed
+
+    # TODO Chad reconcile the two setElapsed functions!
+    @elapsed.setter
+    def elapsed(self, elapsed):
         """
         Sets the playing/paused time (depending on the current state) to a
         specific "elapsed time". For example, calling setElapsed(2) would
@@ -360,7 +390,6 @@ class PygAnimation():
             # "stopped" is only a valid state when the animation is at
             # the very beginning, otherwise, set it to the "paused" state.
 
-
     def areFramesSameSize(self):
         """
         Returns True if all the Surface objects in this animation object
@@ -371,7 +400,6 @@ class PygAnimation():
             if self.getFrame(i).get_size() != (width, height):
                 return False
         return True
-
 
     def getMaxSize(self):
         """
@@ -390,7 +418,6 @@ class PygAnimation():
 
         return (maxWidth, maxHeight)
 
-
     def get_rect(self):
         """
         Returns a pygame.Rect object for this animation object.
@@ -399,7 +426,6 @@ class PygAnimation():
         """
         maxWidth, maxHeight = self.getMaxSize()
         return pygame.Rect(0, 0, maxWidth, maxHeight)
-
 
     def anchor(self, anchorPoint):
         """
@@ -480,7 +506,7 @@ class PygAnimation():
         Return the frame number of the frame that will be currently
         displayed if the animation object were drawn right now.
         """
-        return findStartTime(self.__startTimes, self.getElapsed())
+        return findStartTime(self.__startTimes, self.elapsed)
 
 
     def setFrameNum(self, frameNum):
@@ -494,35 +520,6 @@ class PygAnimation():
         self.setElapsed(self.__startTimes[frameNum])
 
 
-    def getElapsed(self):
-        """
-        NOTE: Do to floating point rounding errors, this doesn't work precisely.
-
-        Find out how long ago the play()/pause() functions were called.
-        """
-        if self.__state == STOPPED:
-            # if stopped, then just return 0
-            return 0
-        else:
-            if self.__state == PLAYING:
-                # if playing, then draw the current frame (based on when the animation
-                # started playing). If not looping and the animation has gone through
-                # all the frames already, then draw the last frame.
-                elapsed = (time.time() - self.__playingStartTime) * self.__rate
-            elif self.__state == PAUSED:
-                # if paused, then draw the frame that was playing at the time the
-                # PygAnimation object was paused
-                elapsed = (self.__pausedStartTime - self.__playingStartTime) * self.__rate
-
-            if self.__loop:
-                elapsed = elapsed % self.__startTimes[-1]
-            else:
-                elapsed = getInBetweenValue(0, elapsed, self.__startTimes[-1])
-
-            elapsed += 0.00001 # done to compensate for rounding errors
-            return elapsed
-
-
     def rewind(self, seconds=None):
         """
         Set the elapsed time back relative to the current elapsed time.
@@ -530,7 +527,7 @@ class PygAnimation():
         if seconds is None:
             self.setElapsed(0.0)
         else:
-            elapsed = self.getElapsed()
+            elapsed = self.elapsed
             self.setElapsed(elapsed - seconds)
 
 
@@ -541,7 +538,7 @@ class PygAnimation():
         if seconds is None:
             self.setElapsed(self.__startTimes[-1] - 0.00002) # done to compensate for rounding errors
         else:
-            elapsed = self.getElapsed()
+            elapsed = self.elapsed
             self.setElapsed(elapsed + seconds)
 
 
@@ -772,7 +769,7 @@ class PygAnimation():
             # we need to modify the _playingStartTime so that the rest of
             # the animation will play, and then stop. (Otherwise, the
             # animation will immediately stop playing if it has already looped.)
-            self.__playingStartTime = time.time() - self.getElapsed()
+            self.__playingStartTime = time.time() - self.elapsed
         self.__loop = bool(loop)
 
     loop = property(_propgetloop, _propsetloop)
