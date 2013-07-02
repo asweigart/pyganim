@@ -500,16 +500,16 @@ class PygAnimation():
         """
         self.setFrameNum(self.getCurrentFrameNum() - int(jump))
 
-
-    def getCurrentFrameNum(self):
+    @property
+    def currentFrameNum(self):
         """
         Return the frame number of the frame that will be currently
         displayed if the animation object were drawn right now.
         """
         return findStartTime(self.__startTimes, self.elapsed)
 
-
-    def setFrameNum(self, frameNum):
+    @currentFrameNum.setter
+    def currentFrameNum(self, frameNum):
         """
         Change the elapsed time to the beginning of a specific frame.
         """
