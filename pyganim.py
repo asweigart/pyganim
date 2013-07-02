@@ -192,7 +192,7 @@ class PygAnimation():
         if the blit() method were called right now. If there is a transformed
         version of the frame, it will return that one.
         """
-        return self.getFrame(self.getCurrentFrameNum())
+        return self.getFrame(self.currentFrameNum)
 
 
     def clearTransforms(self):
@@ -492,7 +492,7 @@ class PygAnimation():
         argument for jump.
         Negative values have the same effect as calling prevFrame()
         """
-        self.setFrameNum(self.getCurrentFrameNum() + int(jump))
+        self.setFrameNum(self.currentFrameNum + int(jump))
 
 
     def prevFrame(self, jump=1):
@@ -502,7 +502,7 @@ class PygAnimation():
         argument for jump.
         Negative values have the same effect as calling nextFrame()
         """
-        self.setFrameNum(self.getCurrentFrameNum() - int(jump))
+        self.setFrameNum(self.currentFrameNum - int(jump))
 
     @property
     def currentFrameNum(self):
