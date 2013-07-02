@@ -331,7 +331,11 @@ class PygAnimation():
                 self.pause()
         elif self.__state in (PAUSED, STOPPED):
             self.play()
-
+    
+    @property
+    def playingStartTime(self):
+        return self.__playingStartTime
+    
     @property
     def elapsed(self):
         """
