@@ -335,6 +335,10 @@ class PygAnimation():
     @property
     def playingStartTime(self):
         return self.__playingStartTime
+
+    @property
+    def pausedStartTime(self):
+        return self.__pausedStartTime
     
     @property
     def elapsed(self):

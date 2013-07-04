@@ -121,27 +121,27 @@ while True:
     timeRect.topleft = (4, 170)
     windowSurface.blit(timeSurf, timeRect)
 
-    playTimeSurf = BASICFONT.render('Play Start Time: %s' % boltAnim._playingStartTime, True, WHITE)
+    playTimeSurf = BASICFONT.render('Play Start Time: %s' % boltAnim.playingStartTime, True, WHITE)
     playTimeRect = playTimeSurf.get_rect()
     playTimeRect.topleft = (4, 190)
     windowSurface.blit(playTimeSurf, playTimeRect)
 
-    pauseTimeSurf = BASICFONT.render('Pause Start Time: %s' % boltAnim._pausedStartTime, True, WHITE)
+    pauseTimeSurf = BASICFONT.render('Pause Start Time: %s' % boltAnim.pausedStartTime, True, WHITE)
     pauseTimeRect = pauseTimeSurf.get_rect()
     pauseTimeRect.topleft = (4, 210)
     windowSurface.blit(pauseTimeSurf, pauseTimeRect)
 
-    diffTimeSurf = BASICFONT.render('Play - Pause Time: %s' % (boltAnim._playingStartTime - boltAnim._pausedStartTime), True, WHITE)
+    diffTimeSurf = BASICFONT.render('Play - Pause Time: %s' % (boltAnim.playingStartTime - boltAnim.pausedStartTime), True, WHITE)
     diffTimeRect = diffTimeSurf.get_rect()
     diffTimeRect.topleft = (4, 230)
     windowSurface.blit(diffTimeSurf, diffTimeRect)
 
-    diff2TimeSurf = BASICFONT.render('Current - Play Time: %s' % (rightNow - boltAnim._playingStartTime), True, WHITE)
+    diff2TimeSurf = BASICFONT.render('Current - Play Time: %s' % (rightNow - boltAnim.playingStartTime), True, WHITE)
     diff2TimeRect = diff2TimeSurf.get_rect()
     diff2TimeRect.topleft = (4, 250)
     windowSurface.blit(diff2TimeSurf, diff2TimeRect)
 
-    diff3TimeSurf = BASICFONT.render('Current - Pause Time: %s' % (rightNow - boltAnim._pausedStartTime), True, WHITE)
+    diff3TimeSurf = BASICFONT.render('Current - Pause Time: %s' % (rightNow - boltAnim.pausedStartTime), True, WHITE)
     diff3TimeRect = diff3TimeSurf.get_rect()
     diff3TimeRect.topleft = (4, 270)
     windowSurface.blit(diff3TimeSurf, diff3TimeRect)
