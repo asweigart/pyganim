@@ -1,0 +1,7 @@
+*.py~
+*.pyc
+*/__pycache__/*
+*.sw?
+*~
+*.log
+*.bak
