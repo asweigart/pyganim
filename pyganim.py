@@ -804,7 +804,7 @@ class PygAnimation(object):
         return self.__visibility
 
     @visibility.setter
-    def _propsetvisibility(self, visibility):
+    def visibility(self, visibility):
         self.__visibility = bool(visibility)
 
 class PygGroup(object):
