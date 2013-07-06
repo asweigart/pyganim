@@ -767,8 +767,6 @@ class PygAnimation(object):
             raise ValueError('rate must be greater than 0.')
         self.__rate = rate
 
-    rate = property(_propgetrate, _propsetrate)
-
     @property
     def loop(self):
         return self.__loop
@@ -782,8 +780,6 @@ class PygAnimation(object):
             # animation will immediately stop playing if it has already looped.)
             self.__playingStartTime = time.time() - self.elapsed
         self.__loop = bool(loop)
-
-    loop = property(_propgetloop, _propsetloop)
 
     @property
     def state(self):
@@ -803,8 +799,6 @@ class PygAnimation(object):
         elif state == STOPPED:
             self.stop()
 
-    state = property(_propgetstate, None)
-
     @property
     def visibility(self):
         return self.__visibility
@@ -812,14 +806,6 @@ class PygAnimation(object):
     @visibility.setter
     def _propsetvisibility(self, visibility):
         self.__visibility = bool(visibility)
-
-    visibility = property(_propgetvisibility, _propsetvisibility)
-
-
-
-
-
-
 
 class PygGroup(object):
     def __init__(self):
