@@ -41,7 +41,7 @@ SOUTH = 'south'
 SOUTHEAST = 'southeast'
 
 
-class PygAnimation():
+class PygAnimation(object):
     def __init__(self, frames, loop=True):
         """
         Constructor function for the animation object. Starts off in the STOPPED state.
@@ -756,10 +756,12 @@ class PygAnimation():
 
     # Getter and setter methods for properties
     # TODO Chad make this proper Python OO
-    def _propgetrate(self):
+    @property
+    def rate(self):
         return self.__rate
-
-    def _propsetrate(self, rate):
+    
+    @rate.setter
+    def rate(self, rate):
         rate = float(rate)
         if rate < 0:
             raise ValueError('rate must be greater than 0.')
@@ -767,11 +769,12 @@ class PygAnimation():
 
     rate = property(_propgetrate, _propsetrate)
 
-
-    def _propgetloop(self):
+    @property
+    def loop(self):
         return self.__loop
 
-    def _propsetloop(self, loop):
+    @loop.setter
+    def loop(self, loop):
         if self.__state == PLAYING and self.__loop and not loop:
             # if we are turning off looping while the animation is playing,
             # we need to modify the _playingStartTime so that the rest of
@@ -782,14 +785,15 @@ class PygAnimation():
 
     loop = property(_propgetloop, _propsetloop)
 
-
-    def _propgetstate(self):
+    @property
+    def state(self):
         if self.isFinished():
             self.__state = STOPPED # if finished playing, then set state to STOPPED.
 
         return self.__state
-
-    def _propsetstate(self, state):
+    
+    @state.setter
+    def state(self, state):
         if state not in (PLAYING, PAUSED, STOPPED):
             raise ValueError('state must be one of pyganim.PLAYING, pyganim.PAUSED, or pyganim.STOPPED')
         if state == PLAYING:
@@ -801,10 +805,11 @@ class PygAnimation():
 
     state = property(_propgetstate, None)
 
-
-    def _propgetvisibility(self):
+    @property
+    def visibility(self):
         return self.__visibility
 
+    @visibility.setter
     def _propsetvisibility(self, visibility):
         self.__visibility = bool(visibility)
 
@@ -816,7 +821,7 @@ class PygAnimation():
 
 
 
-class PygGroup():
+class PygGroup(object):
     def __init__(self):
         pass
 """
