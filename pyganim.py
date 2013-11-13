@@ -1,4 +1,4 @@
-# pyganim.py
+# Pyganim (pyganim.py, ver 1)
 # A sprite animation module for Pygame.
 #
 # By Al Sweigart al@inventwithpython.com
@@ -11,14 +11,13 @@
 # This should be compatible with both Python 2 and Python 3. Please email any
 # bug reports to Al at al@inventwithpython.com
 #
-#
-# I_don't_like_the_naming_conventions_of_PEP_8
-# JustDealWithIt
-#
-# Version 1
 
 
 # TODO: Feature idea: if the same image file is specified, re-use the Surface object. (Make this optional though.)
+# TODO: autoplay member for the ctor
+# TODO: sprite sheet support
+# TODO: automatically load animated gifs and pngs.
+
 
 import pygame, time
 
@@ -39,7 +38,7 @@ SOUTH = 'south'
 SOUTHEAST = 'southeast'
 
 
-class PygAnimation():
+class PygAnimation(object):
     def __init__(self, frames, loop=True):
         # Constructor function for the animation object. Starts off in the STOPPED state.
         #
@@ -104,9 +103,7 @@ class PygAnimation():
 
     def reverse(self):
         # Reverses the order of the animations.
-
-        elapsed = self.getElapsed()
-        elapsed = self._startTimes[-1] - elapsed
+        self.elapsed = self._startTimes[-1] - self.elapsed
         self._images.reverse()
         self._transformedImages.reverse()
         self._durations.reverse()
@@ -131,7 +128,7 @@ class PygAnimation():
         # copies using constructor function instead.
         retval = []
         for i in range(numCopies):
-            newAnim = PygAnimation('_copy', loop=self._loop)
+            newAnim = PygAnimation('_copy', loop=self.loop)
             newAnim._images = self._images[:]
             newAnim._transformedImages = self._transformedImages[:]
             newAnim._durations = self._durations[:]
@@ -154,10 +151,10 @@ class PygAnimation():
         #     blit() function, so it can be either a (top, left) tuple or a Rect
         #     object.
         if self.isFinished():
-            self._state = STOPPED
-        if not self._visibility or self._state == STOPPED:
+            self.state = STOPPED
+        if not self.visibility or self.state == STOPPED:
             return
-        frameNum = findStartTime(self._startTimes, self.getElapsed())
+        frameNum = findStartTime(self._startTimes, self.elapsed)
         destSurface.blit(self.getFrame(frameNum), dest)
 
 
@@ -175,7 +172,7 @@ class PygAnimation():
         # Returns the pygame.Surface object of the frame that would be drawn
         # if the blit() method were called right now. If there is a transformed
         # version of the frame, it will return that one.
-        return self.getFrame(self.getCurrentFrameNum())
+        return self.getFrame(self.currentFrameNum)
 
 
     def clearTransforms(self):
@@ -187,6 +184,12 @@ class PygAnimation():
         # the rotation or scaling functions multiple times results in
         # degraded/noisy images.
         self._transformedImages = []
+
+
+    def makeTransformsPermanent(self):
+        self._images = [pygame.Surface(surfObj.get_size(), 0, surfObj) for surfObj in self._transformedImages]
+        for i in range(len(self._transformedImages)):
+            self._images[i].blit(self._transformedImages[i], (0,0))
 
 
     def blitFrameNum(self, frameNum, destSurface, dest):
@@ -204,8 +207,8 @@ class PygAnimation():
         #     blit() function, so it can be either a (top, left) tuple or a Rect
         #     object.
         if self.isFinished():
-            self._state = STOPPED
-        if not self._visibility or self._state == STOPPED:
+            self.state = STOPPED
+        if not self.visibility or self.state == STOPPED:
             return
         destSurface.blit(self.getFrame(frameNum), dest)
 
@@ -225,10 +228,10 @@ class PygAnimation():
         # @param dest
         #     The position to draw the frame. This is passed to Pygame's Surface's
         #     blit() function, so it can be either a (top, left) tuple or a Rect
-        #     object.        elapsed = int(elapsed * self._rate)
+        #     object.        elapsed = int(elapsed * self.rate)
         if self.isFinished():
-            self._state = STOPPED
-        if not self._visibility or self._state == STOPPED:
+            self.state = STOPPED
+        if not self.visibility or self.state == STOPPED:
             return
         frameNum = findStartTime(self._startTimes, elapsed)
         destSurface.blit(self.getFrame(frameNum), dest)
@@ -237,11 +240,14 @@ class PygAnimation():
     def isFinished(self):
         # Returns True if this animation doesn't loop and has finished playing
         # all the frames it has.
-        return not self._loop and self.getElapsed() >= self._startTimes[-1]
+        return not self.loop and self.elapsed >= self._startTimes[-1]
 
 
     def play(self, startTime=None):
         # Start playing the animation.
+
+        # play() is essentially a setter function for self._state
+        # NOTE: Don't adjust the self.state property, only self._state
 
         if startTime is None:
             startTime = time.time()
@@ -263,6 +269,9 @@ class PygAnimation():
     def pause(self, startTime=None):
         # Stop having the animation progress, and keep it at the current frame.
 
+        # pause() is essentially a setter function for self._state
+        # NOTE: Don't adjust the self.state property, only self._state
+
         if startTime is None:
             startTime = time.time()
 
@@ -279,6 +288,9 @@ class PygAnimation():
 
     def stop(self):
         # Reset the animation to the beginning frame, and do not continue playing
+
+        # stop() is essentially a setter function for self._state
+        # NOTE: Don't adjust the self.state property, only self._state
         if self._state == STOPPED:
             return # do nothing
         self._state = STOPPED
@@ -286,6 +298,10 @@ class PygAnimation():
 
     def togglePause(self):
         # If paused, start playing. If playing, then pause.
+
+        # togglePause() is essentially a setter function for self._state
+        # NOTE: Don't adjust the self.state property, only self._state
+
         if self._state == PLAYING:
             if self.isFinished():
                 # the one exception: if this animation doesn't loop and it
@@ -297,32 +313,6 @@ class PygAnimation():
                 self.pause()
         elif self._state in (PAUSED, STOPPED):
             self.play()
-
-
-    def setElapsed(self, elapsed):
-        # Sets the playing/paused time (depending on the current state) to a
-        # specific "elapsed time". For example, calling setElapsed(2) would
-        # set this animation object as though it had the play() function called
-        # 2 seconds ago. This is handy if you want to sync multiple animations
-        # together.
-        if elapsed < 0:
-            # a negative elapsed means "this many seconds from the end"
-            elapsed = self._startTimes[-1] + elapsed
-
-        if self._loop:
-            elapsed = elapsed % self._startTimes[-1]
-        else:
-            elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
-
-        # set up the playing start time.
-        rightNow = time.time()
-        self._playingStartTime = rightNow - elapsed
-        if self._state in (STOPPED, PAUSED):
-            # if stopped or paused, also set up the paused starting time
-            self._pausedStartTime = rightNow
-            self._state = PAUSED # if stopped, then set to paused
-            # "stopped" is only a valid state when the animation is at
-            # the very beginning, otherwise, set it to the "paused" state.
 
 
     def areFramesSameSize(self):
@@ -351,7 +341,7 @@ class PygAnimation():
         return (maxWidth, maxHeight)
 
 
-    def get_rect(self):
+    def getRect(self):
         # Returns a pygame.Rect object for this animation object.
         # The top and left will be set to 0, 0, and the width and height
         # will be set to what is returned by getMaxSize().
@@ -359,7 +349,7 @@ class PygAnimation():
         return pygame.Rect(0, 0, maxWidth, maxHeight)
 
 
-    def anchor(self, anchorPoint):
+    def anchor(self, anchorPoint=NORTHWEST):
         # If the Surface objects are of different sizes, align them all to a
         # specific "anchor point" (one of the NORTH, SOUTH, SOUTHEAST, etc. constants)
         #
@@ -416,7 +406,7 @@ class PygAnimation():
         # You can jump ahead by multiple frames by specifying a different
         # argument for jump.
         # Negative values have the same effect as calling prevFrame()
-        self.setFrameNum(self.getCurrentFrameNum() + int(jump))
+        self.currentFrameNum += int(jump)
 
 
     def prevFrame(self, jump=1):
@@ -424,86 +414,23 @@ class PygAnimation():
         # You can jump ahead by multiple frames by specifying a different
         # argument for jump.
         # Negative values have the same effect as calling nextFrame()
-        self.setFrameNum(self.getCurrentFrameNum() - int(jump))
-
-
-    def getCurrentFrameNum(self):
-        # Return the frame number of the frame that will be currently
-        # displayed if the animation object were drawn right now.
-        return findStartTime(self._startTimes, self.getElapsed())
-
-
-    def setFrameNum(self, frameNum):
-        # Change the elapsed time to the beginning of a specific frame.
-        if self._loop:
-            frameNum = frameNum % len(self._images)
-        else:
-            frameNum = getInBetweenValue(0, frameNum, len(self._images)-1)
-        self.setElapsed(self._startTimes[frameNum])
-
-
-    def getElapsed(self):
-        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
-
-        # Find out how long ago the play()/pause() functions were called.
-        if self._state == STOPPED:
-            # if stopped, then just return 0
-            return 0
-        else:
-            if self._state == PLAYING:
-                # if playing, then draw the current frame (based on when the animation
-                # started playing). If not looping and the animation has gone through
-                # all the frames already, then draw the last frame.
-                elapsed = (time.time() - self._playingStartTime) * self._rate
-            elif self._state == PAUSED:
-                # if paused, then draw the frame that was playing at the time the
-                # PygAnimation object was paused
-                elapsed = (self._pausedStartTime - self._playingStartTime) * self._rate
-
-            if self._loop:
-                elapsed = elapsed % self._startTimes[-1]
-            else:
-                elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
-
-            elapsed += 0.00001 # done to compensate for rounding errors
-            return elapsed
+        self.currentFrameNum -= int(jump)
 
 
     def rewind(self, seconds=None):
         # Set the elapsed time back relative to the current elapsed time.
         if seconds is None:
-            self.setElapsed(0.0)
+            self.elapsed = 0.0
         else:
-            elapsed = self.getElapsed()
-            self.setElapsed(elapsed - seconds)
+            self.elapsed -= seconds
 
 
-    def fastforward(self, seconds=None):
+    def fastForward(self, seconds=None):
         # Set the elapsed time forward relative to the current elapsed time.
         if seconds is None:
-            self.setElapsed(self._startTimes[-1] - 0.00002) # done to compensate for rounding errors
+            self.elapsed = self._startTimes[-1] - 0.00002 # done to compensate for rounding errors
         else:
-            elapsed = self.getElapsed()
-            self.setElapsed(elapsed + seconds)
-
-
-    def setElapsed(self, elapsed):
-        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
-        elapsed += 0.00001 # done to compensate for rounding errors
-
-        # Set the elapsed time to a specific value.
-        if self._loop:
-            elapsed = elapsed % self._startTimes[-1]
-        else:
-            elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
-
-        rightNow = time.time()
-        self._playingStartTime = rightNow - (elapsed * self._rate)
-
-        if self._state in (PAUSED, STOPPED):
-            self._state = PAUSED # if stopped, then set to paused
-            self._pausedStartTime = rightNow
-
+            self.elapsed += seconds
 
     def _makeTransformedSurfacesIfNeeded(self):
         # Internal-method. Creates the Surface objects for the _transformedImages list.
@@ -597,16 +524,6 @@ class PygAnimation():
         self._surfaceMethodWrapper('set_alpha', *args, **kwargs)
 
 
-    def get_alpha(self):
-        # See http://pygame.org/docs/ref/surface.html#Surface.get_alpha
-        #
-        # This method raises an error to remind the module user that the
-        # individual Surface objects in this animation object can have
-        # different alpha values. Use animObj.getFrame(0).get_alpha()
-        # instead.
-        raise NotImplementedError('get_alpha() must be called on a single Surface object, not the PygAnimation object. Use <animObj>.getFrame(0).get_alpha() instead.')
-
-
     def scroll(self, *args, **kwargs):
         # See http://pygame.org/docs/ref/surface.html#Surface.scroll
         self._surfaceMethodWrapper('scroll', *args, **kwargs)
@@ -617,29 +534,9 @@ class PygAnimation():
         self._surfaceMethodWrapper('set_clip', *args, **kwargs)
 
 
-    def get_clip(self):
-        # See http://pygame.org/docs/ref/surface.html#Surface.get_clip
-        #
-        # This method raises an error to remind the module user that the
-        # individual Surface objects in this animation object can have
-        # different clip values. Use animObj.getFrame(0).get_clip()
-        # instead.
-        raise NotImplementedError('get_clip() must be called on a single Surface object, not the PygAnimation object. Use <animObj>.getFrame(0).get_clip() instead.')
-
-
     def set_colorkey(self, *args, **kwargs):
         # See http://pygame.org/docs/ref/surface.html#Surface.set_colorkey
         self._surfaceMethodWrapper('set_colorkey', *args, **kwargs)
-
-
-    def get_colorkey(self):
-        # See http://pygame.org/docs/ref/surface.html#Surface.get_colorkey
-        #
-        # This method raises an error to remind the module user that the
-        # individual Surface objects in this animation object can have
-        # different colorkey values. Use animObj.getFrame(0).get_colorkey()
-        # instead.
-        raise NotImplementedError('get_colorkey() must be called on a single Surface object, not the PygAnimation object. Use <animObj>.getFrame(0).get_colorkey() instead.')
 
 
     def lock(self, *args, **kwargs):
@@ -654,40 +551,40 @@ class PygAnimation():
 
 
     # Getter and setter methods for properties
-    def _propgetrate(self):
+    def _propGetRate(self):
         return self._rate
 
-    def _propsetrate(self, rate):
+    def _propSetRate(self, rate):
         rate = float(rate)
         if rate < 0:
             raise ValueError('rate must be greater than 0.')
         self._rate = rate
 
-    rate = property(_propgetrate, _propsetrate)
+    rate = property(_propGetRate, _propSetRate)
 
 
-    def _propgetloop(self):
+    def _propGetLoop(self):
         return self._loop
 
-    def _propsetloop(self, loop):
-        if self._state == PLAYING and self._loop and not loop:
+    def _propSetLoop(self, loop):
+        if self.state == PLAYING and self._loop and not loop:
             # if we are turning off looping while the animation is playing,
             # we need to modify the _playingStartTime so that the rest of
             # the animation will play, and then stop. (Otherwise, the
             # animation will immediately stop playing if it has already looped.)
-            self._playingStartTime = time.time() - self.getElapsed()
+            self._playingStartTime = time.time() - self.elapsed
         self._loop = bool(loop)
 
-    loop = property(_propgetloop, _propsetloop)
+    loop = property(_propGetLoop, _propSetLoop)
 
 
-    def _propgetstate(self):
+    def _propGetState(self):
         if self.isFinished():
             self._state = STOPPED # if finished playing, then set state to STOPPED.
 
         return self._state
 
-    def _propsetstate(self, state):
+    def _propSetState(self, state):
         if state not in (PLAYING, PAUSED, STOPPED):
             raise ValueError('state must be one of pyganim.PLAYING, pyganim.PAUSED, or pyganim.STOPPED')
         if state == PLAYING:
@@ -697,36 +594,218 @@ class PygAnimation():
         elif state == STOPPED:
             self.stop()
 
-    state = property(_propgetstate, None)
+    state = property(_propGetState, _propSetState)
 
 
-    def _propgetvisibility(self):
+    def _propGetVisibility(self):
         return self._visibility
 
-    def _propsetvisibility(self, visibility):
+    def _propSetVisibility(self, visibility):
         self._visibility = bool(visibility)
 
-    visibility = property(_propgetvisibility, _propsetvisibility)
+    visibility = property(_propGetVisibility, _propSetVisibility)
+
+
+    def _propSetElapsed(self, elapsed):
+        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
+        elapsed += 0.00001 # done to compensate for rounding errors
+        # TODO - I really need to find a better way to handle the floating point thing.
+
+        # Set the elapsed time to a specific value.
+        if self._loop:
+            elapsed = elapsed % self._startTimes[-1]
+        else:
+            elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
+
+        rightNow = time.time()
+        self._playingStartTime = rightNow - (elapsed * self.rate)
+
+        if self.state in (PAUSED, STOPPED):
+            self.state = PAUSED # if stopped, then set to paused
+            self._pausedStartTime = rightNow
+
+
+    def _propGetElapsed(self):
+        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
+
+        # To prevent infinite recursion, don't use the self.state property,
+        # just read/set self._state directly because the state getter calls
+        # this method.
+
+        # Find out how long ago the play()/pause() functions were called.
+        if self._state == STOPPED:
+            # if stopped, then just return 0
+            return 0
+
+        if self._state == PLAYING:
+            # if playing, then draw the current frame (based on when the animation
+            # started playing). If not looping and the animation has gone through
+            # all the frames already, then draw the last frame.
+            elapsed = (time.time() - self._playingStartTime) * self.rate
+        elif self._state == PAUSED:
+            # if paused, then draw the frame that was playing at the time the
+            # PygAnimation object was paused
+            elapsed = (self._pausedStartTime - self._playingStartTime) * self.rate
+        if self._loop:
+            elapsed = elapsed % self._startTimes[-1]
+        else:
+            elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
+        elapsed += 0.00001 # done to compensate for rounding errors
+        return elapsed
+
+    elapsed = property(_propGetElapsed, _propSetElapsed)
+
+
+    def _propGetCurrentFrameNum(self):
+        # Return the frame number of the frame that will be currently
+        # displayed if the animation object were drawn right now.
+        return findStartTime(self._startTimes, self.elapsed)
+
+
+    def _propSetCurrentFrameNum(self, frameNum):
+        # Change the elapsed time to the beginning of a specific frame.
+        if self.loop:
+            frameNum = frameNum % len(self._images)
+        else:
+            frameNum = getInBetweenValue(0, frameNum, len(self._images)-1)
+        self.elapsed = self._startTimes[frameNum]
+
+    currentFrameNum = property(_propGetCurrentFrameNum, _propSetCurrentFrameNum)
 
 
 
+class PygConductor(object):
+    def __init__(self, *animations):
+        assert len(animations) > 0, 'at least one PygAnimation object is required'
+
+        self._animations = []
+        self.add(*animations)
 
 
+    def add(self, *animations):
+        if type(animations[0]) == dict:
+            for k in animations[0].keys():
+                self._animations.append(animations[0][k])
+        elif type(animations[0]) in (tuple, list):
+            for i in range(len(animations[0])):
+                self._animations.append(animations[0][i])
+        else:
+            for i in range(len(animations)):
+                self._animations.append(animations[i])
 
+    def _propGetAnimations(self):
+        return self._animations
 
-class PygGroup():
-    def __init__(self):
-        pass
-"""
-Add/remove group. check for group membership. Remove all from group, etc.
-in operator usage.
+    def _propSetAnimations(self, val):
+        self._animations = val
 
-play()
-pause()
+    animations = property(_propGetAnimations, _propSetAnimations)
 
+    def play(self, startTime=None):
+        if startTime is None:
+            startTime = time.time()
 
-"""
+        for animObj in self._animations:
+            animObj.play(startTime)
 
+    def pause(self, startTime=None):
+        if startTime is None:
+            startTime = time.time()
+
+        for animObj in self._animations:
+            animObj.pause(startTime)
+
+    def stop(self):
+        for animObj in self._animations:
+            animObj.stop()
+
+    def reverse(self):
+        for animObj in self._animations:
+            animObj.reverse()
+
+    def clearTransforms(self):
+        for animObj in self._animations:
+            animObj.clearTransforms()
+
+    def makeTransformsPermanent(self):
+        for animObj in self._animations:
+            animObj.makeTransformsPermanent()
+
+    def togglePause(self):
+        for animObj in self._animations:
+            animObj.togglePause()
+
+    def nextFrame(self, jump=1):
+        for animObj in self._animations:
+            animObj.nextFrame(jump)
+
+    def prevFrame(self, jump=1):
+        for animObj in self._animations:
+            animObj.prevFrame(jump)
+
+    def rewind(self, seconds=None):
+        for animObj in self._animations:
+            animObj.rewind(seconds)
+
+    def fastForward(self, seconds=None):
+        for animObj in self._animations:
+            animObj.fastForward(seconds)
+
+    def flip(self, xbool, ybool):
+        for animObj in self._animations:
+            animObj.flip(xbool, ybool)
+
+    def scale(self, width_height):
+        for animObj in self._animations:
+            animObj.scale(width_height)
+
+    def rotate(self, angle):
+        for animObj in self._animations:
+            animObj.rotate(angle)
+
+    def rotozoom(self, angle, scale):
+        for animObj in self._animations:
+            animObj.rotozoom(angle, scale)
+
+    def scale2x(self):
+        for animObj in self._animations:
+            animObj.scale2x()
+
+    def smoothscale(self, width_height):
+        for animObj in self._animations:
+            animObj.smoothscale(width_height)
+
+    def convert(self):
+        for animObj in self._animations:
+            animObj.convert()
+
+    def convert_alpha(self):
+        for animObj in self._animations:
+            animObj.convert_alpha()
+
+    def set_alpha(self, *args, **kwargs):
+        for animObj in self._animations:
+            animObj.set_alpha(*args, **kwargs)
+
+    def scroll(self, dx=0, dy=0):
+        for animObj in self._animations:
+            animObj.scroll(dx, dy)
+
+    def set_clip(self, *args, **kwargs):
+        for animObj in self._animations:
+            animObj.set_clip(*args, **kwargs)
+
+    def set_colorkey(self, *args, **kwargs):
+        for animObj in self._animations:
+            animObj.set_colorkey(*args, **kwargs)
+
+    def lock(self):
+        for animObj in self._animations:
+            animObj.lock()
+
+    def unlock(self):
+        for animObj in self._animations:
+            animObj.unlock()
 
 
 def getInBetweenValue(lowerBound, value, upperBound):
