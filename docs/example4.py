@@ -35,9 +35,9 @@ windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
 pygame.display.set_caption('Pyganim Test 4')
 
 # load the "standing" sprites (these are single images, not animations)
-front_standing = pygame.image.load('gameimages/crono_front.gif')
-back_standing = pygame.image.load('gameimages/crono_back.gif')
-left_standing = pygame.image.load('gameimages/crono_left.gif')
+front_standing = pygame.image.load('crono_images/crono_front.gif')
+back_standing = pygame.image.load('crono_images/crono_back.gif')
+left_standing = pygame.image.load('crono_images/crono_left.gif')
 right_standing = pygame.transform.flip(left_standing, True, False)
 
 playerWidth, playerHeight = front_standing.get_size()
@@ -46,7 +46,7 @@ playerWidth, playerHeight = front_standing.get_size()
 animTypes = 'back_run back_walk front_run front_walk left_run left_walk'.split()
 animObjs = {}
 for animType in animTypes:
-    imagesAndDurations = [('gameimages/crono_%s.%s.gif' % (animType, str(num).rjust(3, '0')), 0.1) for num in range(6)]
+    imagesAndDurations = [('crono_images/crono_%s.%s.gif' % (animType, str(num).rjust(3, '0')), 0.1) for num in range(6)]
     animObjs[animType] = pyganim.PygAnimation(imagesAndDurations)
 
 # create the right-facing sprites by copying and flipping the left-facing sprites
