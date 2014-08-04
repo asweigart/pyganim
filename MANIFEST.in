@@ -1,0 +1,10 @@
+include *.md
+recursive-include docs *.bat
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs *.png
+recursive-include docs *.gif
+recursive-include docs *.jpg
+recursive-include docs Makefile
+recursive-include pyganim *.py
+recursive-include tests *.py

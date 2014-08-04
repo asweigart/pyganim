@@ -1,4 +1,4 @@
-# Pyganim (pyganim.py, ver 1)
+# Pyganim (pyganim.py, ver 0.9.0)
 # A sprite animation module for Pygame.
 #
 # By Al Sweigart al@inventwithpython.com
@@ -18,6 +18,7 @@
 # TODO: sprite sheet support
 # TODO: automatically load animated gifs and pngs.
 
+__version__ = '0.9.0'
 
 import pygame, time
 
