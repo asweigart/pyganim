@@ -18,7 +18,7 @@
 # TODO: sprite sheet support
 # TODO: automatically load animated gifs and pngs.
 
-__version__ = '0.9.0'
+__version__ = '1.0.0'
 
 import pygame, time
 
@@ -28,15 +28,15 @@ PAUSED = 'paused'
 STOPPED = 'stopped'
 
 # These values are used in the anchor() method.
-NORTHWEST = 'northwest'
-NORTH = 'north'
-NORTHEAST = 'northeast'
-WEST = 'west'
-CENTER = 'center'
-EAST = 'east'
-SOUTHWEST = 'southwest'
-SOUTH = 'south'
-SOUTHEAST = 'southeast'
+NW = NORTHWEST = 'nw'
+N = NORTH = 'n'
+NE = NORTHEAST = 'ne'
+W = WEST = 'w'
+C = CENTER = 'c'
+E = EAST = 'e'
+SW = SOUTHWEST = 'sw'
+S = SOUTH = 's'
+SE = SOUTHEAST = 'se'
 
 
 class PygAnimation(object):
@@ -90,20 +90,15 @@ class PygAnimation(object):
                     frame = (pygame.image.load(frame[0]), frame[1])
                 self._images.append(frame[0])
                 self._durations.append(frame[1])
-            self._startTimes = self._getStartTimes()
 
-
-    def _getStartTimes(self):
-        # Internal method to get the start times based off of the _durations list.
-        # Don't call this method.
-        startTimes = [0]
-        for i in range(self.numFrames):
-            startTimes.append(startTimes[-1] + self._durations[i])
-        return startTimes
+            # calculate start times of each frame
+            self._startTimes = [0]
+            for i in range(self.numFrames):
+                self._startTimes.append(self._startTimes[-1] + self._durations[i])
 
 
     def reverse(self):
-        # Reverses the order of the animations.
+        # Reverses the order of the frames.
         self.elapsed = self._startTimes[-1] - self.elapsed
         self._images.reverse()
         self._transformedImages.reverse()
@@ -139,7 +134,7 @@ class PygAnimation(object):
         return retval
 
 
-    def blit(self, destSurface, dest):
+    def blit(self, destSurface, dest=(0, 0)):
         # Draws the appropriate frame of the animation to the destination Surface
         # at the specified position.
         #
@@ -264,6 +259,8 @@ class PygAnimation(object):
         elif self._state == PAUSED:
             # if animation was paused, start playing from where it was paused
             self._playingStartTime = startTime - (self._pausedStartTime - self._playingStartTime)
+        else:
+            assert False, '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
         self._state = PLAYING
 
 
@@ -284,6 +281,8 @@ class PygAnimation(object):
             rightNow = time.time()
             self._playingStartTime = rightNow
             self._pausedStartTime = rightNow
+        else:
+            assert False, '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
         self._state = PAUSED
 
 
@@ -292,6 +291,7 @@ class PygAnimation(object):
 
         # stop() is essentially a setter function for self._state
         # NOTE: Don't adjust the self.state property, only self._state
+        assert self._state in (PLAYING, PAUSED, STOPPED), '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
         if self._state == STOPPED:
             return # do nothing
         self._state = STOPPED
@@ -314,6 +314,8 @@ class PygAnimation(object):
                 self.pause()
         elif self._state in (PAUSED, STOPPED):
             self.play()
+        else:
+            assert False, '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
 
 
     def areFramesSameSize(self):
@@ -632,6 +634,7 @@ class PygAnimation(object):
         # To prevent infinite recursion, don't use the self.state property,
         # just read/set self._state directly because the state getter calls
         # this method.
+        assert self._state in (PLAYING, PAUSED, STOPPED), '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
 
         # Find out how long ago the play()/pause() functions were called.
         if self._state == STOPPED:
@@ -647,6 +650,7 @@ class PygAnimation(object):
             # if paused, then draw the frame that was playing at the time the
             # PygAnimation object was paused
             elapsed = (self._pausedStartTime - self._playingStartTime) * self.rate
+
         if self._loop:
             elapsed = elapsed % self._startTimes[-1]
         else:
@@ -851,3 +855,30 @@ def findStartTime(startTimes, target):
             lb = i
         elif startTimes[i] > target:
             ub = i
+
+
+def splitGif(filename):
+    # Takes a filename of an animated GIF and returns a list of Image objects of each frame.
+    # Requires PIL or Pillow to be installed
+    from PIL import Image
+    im = Image.open(filename)
+    return list(iterAnimatedGifFrames(im))
+    #for i, frame in enumerate(iter_frames(im)):
+        #frame.save('test%d.png' % i,**frame.info)
+
+
+def iterAnimatedGifFrames(im):
+    # Iterator for frames in an animated GIF.
+    try:
+        i= 0
+        while 1:
+            im.seek(i)
+            imframe = im.copy()
+            if i == 0:
+                palette = imframe.getpalette()
+            else:
+                imframe.putpalette(palette)
+            yield imframe
+            i += 1
+    except EOFError:
+        pass
