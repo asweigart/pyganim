@@ -54,16 +54,16 @@ class PygAnimation(object):
 
         # _images stores the pygame.Surface objects of each frame
         self._images = []
-        # _durations stores the durations (in seconds) of each frame.
-        # e.g. [1, 1, 2.5] means the first and second frames last one second,
+        # _durations stores the durations (in milliseconds) of each frame.
+        # e.g. [1000, 1000, 2500] means the first and second frames last one second,
         # and the third frame lasts for two and half seconds.
         self._durations = []
         # _startTimes shows when each frame begins. len(self._startTimes) will
         # always be one more than len(self._images), because the last number
         # will be when the last frame ends, rather than when it starts.
-        # The values are in seconds.
+        # The values are in milliseconds.
         # So self._startTimes[-1] tells you the length of the entire animation.
-        # e.g. if _durations is [1, 1, 2.5], then _startTimes will be [0, 1, 2, 4.5]
+        # e.g. if _durations is [1000, 1000, 2500], then _startTimes will be [0, 1000, 2000, 4500]
         self._startTimes = None
 
         # if the sprites are transformed, the originals are kept in _images
@@ -78,13 +78,15 @@ class PygAnimation(object):
         self._playingStartTime = 0 # the time that the play() function was last called.
         self._pausedStartTime = 0 # the time that the pause() function was last called.
 
+        # NOTE: There is no "self._elapsed" attribute. "Elapsed" is always calculated based on the current time and _playingStartTime.
+
         if frames != '_copy': # ('_copy' is passed for frames by the getCopies() method)
             self.numFrames = len(frames)
             assert self.numFrames > 0, 'Must contain at least one frame.'
             for i in range(self.numFrames):
                 # load each frame of animation into _images
-                frame = frames[i]
-                assert type(frame) in (list, tuple) and len(frame) == 2, 'Frame %s has incorrect format.' % (i)
+                frame = (frames[i][0], int(frames[i][1] * 1000)) # internally, we store milliseconds as integers rather than seconds to avoid rounding errors
+                assert type(frame) in (list, tuple) and len(frame) == 2, 'Frame %s has incorrect format. It should be a tuple of length 2, first item a pygame.Surface or image filename, second item an int/float of duration.' % (i)
                 assert type(frame[0]) in (str, pygame.Surface), 'Frame %s image must be a string filename or a pygame.Surface' % (i)
                 assert frame[1] > 0, 'Frame %s duration must be greater than zero.' % (i)
                 if type(frame[0]) == str:
@@ -100,7 +102,7 @@ class PygAnimation(object):
 
     def reverse(self):
         # Reverses the order of the frames.
-        self.elapsed = self._startTimes[-1] - self.elapsed
+        self.elapsed = (self._durations[-1] + self._startTimes[-1]) - self.elapsed
         self._images.reverse()
         self._transformedImages.reverse()
         self._durations.reverse()
@@ -244,10 +246,8 @@ class PygAnimation(object):
         # Start playing the animation.
 
         # play() is essentially a setter function for self._state
-        # NOTE: Don't adjust the self.state property, only self._state
-
         if startTime is None:
-            startTime = time.time()
+            startTime = int(time.time() * 1000)
 
         if self._state == PLAYING:
             if self.isFinished():
@@ -269,17 +269,15 @@ class PygAnimation(object):
         # Stop having the animation progress, and keep it at the current frame.
 
         # pause() is essentially a setter function for self._state
-        # NOTE: Don't adjust the self.state property, only self._state
-
         if startTime is None:
-            startTime = time.time()
+            startTime = int(time.time() * 1000)
 
         if self._state == PAUSED:
             return # do nothing
         elif self._state == PLAYING:
             self._pausedStartTime = startTime
         elif self._state == STOPPED:
-            rightNow = time.time()
+            rightNow = int(time.time() * 1000)
             self._playingStartTime = rightNow
             self._pausedStartTime = rightNow
         else:
@@ -291,7 +289,6 @@ class PygAnimation(object):
         # Reset the animation to the beginning frame, and do not continue playing
 
         # stop() is essentially a setter function for self._state
-        # NOTE: Don't adjust the self.state property, only self._state
         assert self._state in (PLAYING, PAUSED, STOPPED), '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
         if self._state == STOPPED:
             return # do nothing
@@ -302,14 +299,12 @@ class PygAnimation(object):
         # If paused, start playing. If playing, then pause.
 
         # togglePause() is essentially a setter function for self._state
-        # NOTE: Don't adjust the self.state property, only self._state
-
         if self._state == PLAYING:
             if self.isFinished():
                 # the one exception: if this animation doesn't loop and it
                 # has finished playing, then toggling the pause will cause
                 # the animation to replay from the beginning.
-                #self._playingStartTime = time.time() # effectively the same as calling play()
+                #self._playingStartTime = int(time.time() * 1000) # effectively the same as calling play()
                 self.play()
             else:
                 self.pause()
@@ -426,15 +421,15 @@ class PygAnimation(object):
         if seconds is None:
             self.elapsed = 0.0
         else:
-            self.elapsed -= seconds
+            self.elapsed -= (seconds * 1000) # elapsed is in milliseconds
 
 
-    def fastForward(self, seconds=None):
+    def fastForward(self, seconds):
         # Set the elapsed time forward relative to the current elapsed time.
         if seconds is None:
             self.elapsed = self._startTimes[-1] - 0.00002 # done to compensate for rounding errors
         else:
-            self.elapsed += seconds
+            self.elapsed += (seconds * 1000) # elapsed is in milliseconds
 
     def _makeTransformedSurfacesIfNeeded(self):
         # Internal-method. Creates the Surface objects for the _transformedImages list.
@@ -576,7 +571,7 @@ class PygAnimation(object):
             # we need to modify the _playingStartTime so that the rest of
             # the animation will play, and then stop. (Otherwise, the
             # animation will immediately stop playing if it has already looped.)
-            self._playingStartTime = time.time() - self.elapsed
+            self._playingStartTime = int(time.time() * 1000) - self.elapsed
         self._loop = bool(loop)
 
     loop = property(_propGetLoop, _propSetLoop)
@@ -621,7 +616,7 @@ class PygAnimation(object):
         else:
             elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
 
-        rightNow = time.time()
+        rightNow = int(time.time() * 1000)
         self._playingStartTime = rightNow - (elapsed * self.rate)
 
         if self.state in (PAUSED, STOPPED):
@@ -646,7 +641,7 @@ class PygAnimation(object):
             # if playing, then draw the current frame (based on when the animation
             # started playing). If not looping and the animation has gone through
             # all the frames already, then draw the last frame.
-            elapsed = (time.time() - self._playingStartTime) * self.rate
+            elapsed = (int(time.time() * 1000) - self._playingStartTime) * self.rate
         elif self._state == PAUSED:
             # if paused, then draw the frame that was playing at the time the
             # PygAnimation object was paused
@@ -709,14 +704,14 @@ class PygConductor(object):
 
     def play(self, startTime=None):
         if startTime is None:
-            startTime = time.time()
+            startTime = int(time.time() * 1000)
 
         for animObj in self._animations:
             animObj.play(startTime)
 
     def pause(self, startTime=None):
         if startTime is None:
-            startTime = time.time()
+            startTime = int(time.time() * 1000)
 
         for animObj in self._animations:
             animObj.pause(startTime)
@@ -753,7 +748,7 @@ class PygConductor(object):
         for animObj in self._animations:
             animObj.rewind(seconds)
 
-    def fastForward(self, seconds=None):
+    def fastForward(self, seconds):
         for animObj in self._animations:
             animObj.fastForward(seconds)
 
