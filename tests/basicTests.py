@@ -252,7 +252,8 @@ class TestGeneral(unittest.TestCase):
 
     def test_nextFrame_prevFrame(self):
         animObj = getTestAnimObj()
-        animObj.pause() # TODO - should be able to take this out.
+        import pdb; pdb.set_trace()
+        #animObj.pause() # TODO - should be able to take this out.
 
         expectedFrameNum = 0
         self.assertEqual(expectedFrameNum, animObj.currentFrameNum)

@@ -427,7 +427,7 @@ class PygAnimation(object):
     def fastForward(self, seconds):
         # Set the elapsed time forward relative to the current elapsed time.
         if seconds is None:
-            self.elapsed = self._startTimes[-1] - 0.00002 # done to compensate for rounding errors
+            self.elapsed = self._startTimes[-1] ##- 0.00002 # done to compensate for rounding errors
         else:
             self.elapsed += (seconds * 1000) # elapsed is in milliseconds
 
@@ -607,7 +607,7 @@ class PygAnimation(object):
 
     def _propSetElapsed(self, elapsed):
         # NOTE: Do to floating point rounding errors, this doesn't work precisely.
-        elapsed += 0.00001 # done to compensate for rounding errors
+        ##elapsed += 0.00001 # done to compensate for rounding errors
         # TODO - I really need to find a better way to handle the floating point thing.
 
         # Set the elapsed time to a specific value.
@@ -651,7 +651,7 @@ class PygAnimation(object):
             elapsed = elapsed % self._startTimes[-1]
         else:
             elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
-        elapsed += 0.00001 # done to compensate for rounding errors
+        ##elapsed += 0.00001 # done to compensate for rounding errors
         return elapsed
 
     elapsed = property(_propGetElapsed, _propSetElapsed)
@@ -665,6 +665,9 @@ class PygAnimation(object):
 
     def _propSetCurrentFrameNum(self, frameNum):
         # Change the elapsed time to the beginning of a specific frame.
+        if self._state == STOPPED:
+            self._state = PAUSED # setting the frame num automatically puts it as paused.
+
         if self.loop:
             frameNum = frameNum % len(self._images)
         else:
