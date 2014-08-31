@@ -17,6 +17,7 @@
 # TODO: autoplay member for the ctor
 # TODO: sprite sheet support
 # TODO: automatically load animated gifs and pngs.
+# TODO: Dynamically change durations and number of frames.
 
 __version__ = '1.0.0'
 
@@ -318,7 +319,7 @@ class PygAnimation(object):
             assert False, '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
 
 
-    def areFramesSameSize(self):
+    def framesAreSameSize(self):
         # Returns True if all the Surface objects in this animation object
         # have the same width and height. Otherwise, returns False
         width, height = self.getFrame(0).get_size()
@@ -357,7 +358,7 @@ class PygAnimation(object):
         # specific "anchor point" (one of the NORTH, SOUTH, SOUTHEAST, etc. constants)
         #
         # By default, they are all anchored to the NORTHWEST corner.
-        if self.areFramesSameSize():
+        if self.framesAreSameSize():
             return # nothing needs to be anchored
             # This check also prevents additional calls to anchor() from doing
             # anything, since anchor() sets all the image to the same size.

@@ -15,7 +15,7 @@ BOLT_DURATIONS = 0.1
 BOLT_WIDTH, BOLT_HEIGHT = pygame.image.load('bolt1.png').get_size()
 
 
-def getAnimObj():
+def getTestAnimObj():
     # Returns a standard PygAnimation object.
     frames = [('bolt%s.png' % (i), BOLT_DURATIONS) for i in range(1, NUM_BOLT_IMAGES + 1)]
     return pyganim.PygAnimation(frames)
@@ -88,10 +88,10 @@ class TestGeneral(unittest.TestCase):
 
 
     def test_reverse(self):
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
 
         imageIdsForward = [id(animObj._images[i]) for i in range(NUM_BOLT_IMAGES)]
-        imageIdsReverse = [id(animObj._images[i]) for i in range(NUM_BOLT_IMAGES)]
+        imageIdsReverse = imageIdsForward[:]
         imageIdsReverse.reverse()
 
 
@@ -106,7 +106,7 @@ class TestGeneral(unittest.TestCase):
 
 
     def test_getCopy(self):
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
 
         animCopy = animObj.getCopy()
 
@@ -122,7 +122,7 @@ class TestGeneral(unittest.TestCase):
 
 
     def test_getCopies(self):
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
 
         animCopies = animObj.getCopies(5)
 
@@ -139,7 +139,7 @@ class TestGeneral(unittest.TestCase):
 
 
     def test_blit(self):
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
         animObj.pause() # pause the animation on the first frame (bolt1.png)
 
         surf = pygame.Surface((BOLT_WIDTH, BOLT_HEIGHT))
@@ -161,7 +161,7 @@ class TestGeneral(unittest.TestCase):
 
 
     def test_blitFrameNum(self):
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
 
         surf = pygame.Surface((BOLT_WIDTH, BOLT_HEIGHT))
 
@@ -178,8 +178,9 @@ class TestGeneral(unittest.TestCase):
 
                 self.assertEqual((dest, None), (dest, compareSurfaces(surf, orig)))
 
+
     def test_blitFrameAtTime(self):
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
 
         surf = pygame.Surface((BOLT_WIDTH, BOLT_HEIGHT))
 
@@ -201,7 +202,7 @@ class TestGeneral(unittest.TestCase):
 
     def test_isFinished(self):
         # test on animation that doesn't loop
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
         animObj.loop = False
         animObj.play()
         self.assertEqual(animObj.isFinished(), False)
@@ -209,12 +210,76 @@ class TestGeneral(unittest.TestCase):
         self.assertEqual(animObj.isFinished(), True)
 
         # test on animation that loops
-        animObj = getAnimObj()
+        animObj = getTestAnimObj()
         animObj.loop = True
         animObj.play()
         self.assertEqual(animObj.isFinished(), False)
         time.sleep(BOLT_DURATIONS * (NUM_BOLT_IMAGES + 1)) # should be enough time to finish a single run through of the animation
         self.assertEqual(animObj.isFinished(), False) # looping animations are never finished
+
+
+    def test_getFrame(self):
+        animObj = getTestAnimObj()
+
+        for i in range(NUM_BOLT_IMAGES):
+            frame = animObj.getFrame(i)
+            image = pygame.image.load('bolt%s.png' % (i + 1))
+            self.assertEqual(None, compareSurfaces(frame, image))
+
+
+    def test_getCurrentFrame(self):
+        animObj = getTestAnimObj()
+
+        for i in range(NUM_BOLT_IMAGES):
+            frame = animObj.getCurrentFrame()
+            image = pygame.image.load('bolt%s.png' % (i + 1))
+            self.assertEqual(None, compareSurfaces(frame, image))
+
+            animObj.nextFrame()
+
+
+    def test_framesAreSameSize(self):
+        # the standard test animation object has same-sized frames
+        self.assertTrue(getTestAnimObj().framesAreSameSize())
+
+        diffSized = pyganim.PygAnimation([(pygame.Surface((100, 100)), BOLT_DURATIONS), (pygame.Surface((100, 200)), BOLT_DURATIONS)])
+        self.assertFalse(diffSized.framesAreSameSize())
+
+
+    def test_getRect(self):
+        self.assertEqual(getTestAnimObj().getRect(), pygame.Rect(0, 0, BOLT_WIDTH, BOLT_HEIGHT))
+
+
+    def test_nextFrame_prevFrame(self):
+        animObj = getTestAnimObj()
+        animObj.pause() # TODO - should be able to take this out.
+
+        expectedFrameNum = 0
+        self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
+        # test nextFrame()
+        for i in range(NUM_BOLT_IMAGES * 2):
+            animObj.nextFrame()
+            expectedFrameNum = (expectedFrameNum + 1) % len(animObj._images)
+            self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
+
+        # test prevFrame()
+        for i in range(NUM_BOLT_IMAGES * 2):
+            animObj.prevFrame()
+            expectedFrameNum = (expectedFrameNum - 1) % len(animObj._images)
+            self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
+
+        # test nextFrame() with jump argument
+        for i in range(NUM_BOLT_IMAGES * 2):
+            animObj.nextFrame(3)
+            expectedFrameNum = (expectedFrameNum + 3) % len(animObj._images)
+            self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
+
+        # test prevFrame() with jump argument
+        for i in range(NUM_BOLT_IMAGES * 2):
+            animObj.prevFrame(3)
+            expectedFrameNum = (expectedFrameNum - 3) % len(animObj._images)
+            self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
+
 
 
 
