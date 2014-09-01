@@ -357,10 +357,10 @@ class TestGeneral(unittest.TestCase):
 
     def test_fastForward(self):
         animObj = getTestAnimObj()
-        self.assertEqual(animObj.state, pygame.STOPPED)
+        self.assertEqual(animObj.state, pyganim.STOPPED)
         animObj.fastForward(0.375)
-        self.assertEqual(animObj.elapsed, 0.375)
-        self.assertEqual(animObj.state, pygame.PAUSED)
+        self.assertEqual(animObj.elapsed, 375)
+        self.assertEqual(animObj.state, pyganim.PAUSED)
 
         animObj = getTestAnimObj()
         animObj.play()
@@ -369,6 +369,13 @@ class TestGeneral(unittest.TestCase):
         origElapsed = animObj.elapsed
         animObj.rewind(0.1)
         self.assertEqual(animObj.elapsed, origElapsed - 100)
+
+    def test_loadingAnimatedGif(self):
+        animObj = pyganim.PygAnimation('banana.gif') # IT'S PEANUT BUTTER JELLY TIME
+        self.assertEqual(len(animObj._images), 8)
+        for i in range(8):
+            self.assertEqual(animObj._durations[i], 100)
+
 
 
 class MiscTests(unittest.TestCase):

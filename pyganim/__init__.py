@@ -24,12 +24,8 @@ __version__ = '1.0.0'
 import pygame
 import time
 import sys
+import os
 
-try:
-    from PIL import Image
-    import os
-except ImportError:
-    pass # PIL/Pillow is not required for Pyganim unless you want to load from animated gifs.
 
 runningOnPython2 = sys.version_info[0] == 2
 
@@ -87,22 +83,20 @@ class PygAnimation(object):
         self._rate = 1.0 # 2.0 means play the animation twice as fast, 0.5 means twice as slow
         self._visibility = True # If False, then nothing is drawn when the blit() methods are called
 
-        self._playingStartTime = 0 # the time that the play() function was last called.
-        self._pausedStartTime = 0 # the time that the pause() function was last called.
+        self._playingStartTime = 0 # the time that the play() function was last called. Epoch timestamp in milliseconds.
+        self._pausedStartTime = 0 # the time that the pause() function was last called. Epoch timestamp in milliseconds.
 
         # NOTE: There is no "self._elapsed" attribute. "Elapsed" is always calculated based on the current time and _playingStartTime.
-
-        if type(frames) == str and frames.endswith('.gif'):
+        if type(frames) == str and frames.lower().endswith('.gif'):
             # frames is an animated gif filename
             gifImages = splitGif(frames)
             # NOTE: I can't understand how PIL and Pygame's tobytes()/tostring()/fromstring() methods work, hence the use of temporary files.
             # NOTE: Named temp files delete themselves on close on Windows, so the temp file has to be created here.
             frames = []
-            for frame in gifImages:
-                frame.save('temppyganim.gif')
-                frames.append((pygame.image.load('temppyganim.gif'), frame.info['duration'] / 1000)) # duration is already in milliseconds, so compensate
-                os.unlink('temppyganim.gif')
-
+            for im in gifImages:
+                im.save('.temp_pyganim.gif')
+                frames.append((pygame.image.load('.temp_pyganim.gif'), im.info['duration'] / 1000.0)) # duration is already in milliseconds, so compensate
+                os.unlink('.temp_pyganim.gif')
 
         if frames != '_copy': # ('_copy' is passed for frames by the getCopies() method)
             self.numFrames = len(frames)
@@ -266,7 +260,7 @@ class PygAnimation(object):
         return not self.loop and self.elapsed >= self._startTimes[-1]
 
 
-    def play(self, startTime=None):
+    def play(self, startTime=None): # startTime is epoch timestamp in milliseconds. TODO: Change this?
         # Start playing the animation.
 
         # play() is essentially a setter function for self._state
@@ -624,8 +618,11 @@ class PygAnimation(object):
 
     def _propSetElapsed(self, elapsed):
         # Set the elapsed time to a specific value.
-
         # NOTE: elapsed is in milliseconds
+
+        if self.state == STOPPED:
+            self.state = PAUSED
+
         if self._loop:
             elapsed = elapsed % self._startTimes[-1]
         else:
@@ -651,8 +648,7 @@ class PygAnimation(object):
         if self._state == STOPPED:
             # if stopped, then just return 0
             return 0
-
-        if self._state == PLAYING:
+        elif self._state == PLAYING:
             # if playing, then draw the current frame (based on when the animation
             # started playing). If not looping and the animation has gone through
             # all the frames already, then draw the last frame.
@@ -879,10 +875,11 @@ def splitGif(filename):
     # Takes a filename of an animated GIF and returns a list of Image objects of each frame.
     # Requires PIL or Pillow to be installed
     from PIL import Image
-    im = Image.open(filename)
-    return list(iterAnimatedGifFrames(im))
-    #for i, frame in enumerate(iter_frames(im)):
-        #frame.save('test%d.png' % i,**frame.info)
+    gifFile = open(str(filename), 'rb')
+    im = Image.open(gifFile) # passing a file-like object so that we can close it and the unit tests won't complain.
+    retVal = list(iterAnimatedGifFrames(im))
+    gifFile.close()
+    return retVal
 
 
 def iterAnimatedGifFrames(im):
