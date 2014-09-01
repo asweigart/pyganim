@@ -246,14 +246,8 @@ class TestGeneral(unittest.TestCase):
         self.assertFalse(diffSized.framesAreSameSize())
 
 
-    def test_getRect(self):
-        self.assertEqual(getTestAnimObj().getRect(), pygame.Rect(0, 0, BOLT_WIDTH, BOLT_HEIGHT))
-
-
     def test_nextFrame_prevFrame(self):
         animObj = getTestAnimObj()
-        import pdb; pdb.set_trace()
-        #animObj.pause() # TODO - should be able to take this out.
 
         expectedFrameNum = 0
         self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
@@ -281,7 +275,135 @@ class TestGeneral(unittest.TestCase):
             expectedFrameNum = (expectedFrameNum - 3) % len(animObj._images)
             self.assertEqual(expectedFrameNum, animObj.currentFrameNum)
 
+    def test_play_pause(self):
+        # with looping
+        animObj = getTestAnimObj()
+        self.assertTrue(animObj.loop)
+        for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
+            animObj.play()
+            time.sleep(BOLT_DURATIONS)
+            animObj.pause()
+            self.assertEqual(i % NUM_BOLT_IMAGES, animObj.currentFrameNum)
 
+        # without looping
+        animObj = getTestAnimObj()
+        animObj.loop = False
+        for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
+            animObj.play()
+            time.sleep(BOLT_DURATIONS)
+            animObj.pause()
+            if i >= NUM_BOLT_IMAGES:
+                self.assertEqual(NUM_BOLT_IMAGES - 1, animObj.currentFrameNum) # with looping off, the currentFrameNum does not advance after the last frame
+            else:
+                self.assertEqual(i, animObj.currentFrameNum)
+
+    def test_togglePause(self):
+        # with looping
+        animObj = getTestAnimObj()
+        self.assertTrue(animObj.loop)
+        for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
+            animObj.togglePause()
+            time.sleep(BOLT_DURATIONS)
+            animObj.togglePause()
+            self.assertEqual(i % NUM_BOLT_IMAGES, animObj.currentFrameNum)
+
+        # without looping
+        animObj = getTestAnimObj()
+        animObj.loop = False
+        for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
+            animObj.togglePause()
+            time.sleep(BOLT_DURATIONS)
+            animObj.togglePause()
+            if i >= NUM_BOLT_IMAGES:
+                self.assertEqual(NUM_BOLT_IMAGES - 1, animObj.currentFrameNum) # with looping off, the currentFrameNum does not advance after the last frame
+            else:
+                self.assertEqual(i, animObj.currentFrameNum)
+
+
+    def test_getMaxSize(self):
+        animObj = getTestAnimObj()
+        self.assertEqual((BOLT_WIDTH, BOLT_HEIGHT), animObj.getMaxSize())
+
+        mixedSizesObj = pyganim.PygAnimation([(pygame.Surface((100, 10)), 1), (pygame.Surface((10, 200)), 1)])
+        self.assertEqual((100, 200), mixedSizesObj.getMaxSize())
+
+
+    def test_getRect(self):
+        animObj = getTestAnimObj()
+        r = animObj.getRect()
+        self.assertEqual((BOLT_WIDTH, BOLT_HEIGHT), r.size)
+
+        mixedSizesObj = pyganim.PygAnimation([(pygame.Surface((100, 10)), 1), (pygame.Surface((10, 200)), 1)])
+        r = mixedSizesObj.getRect()
+        self.assertEqual((100, 200), r.size)
+
+
+    def test_rewind(self):
+        animObj = getTestAnimObj()
+
+        animObj.play()
+        time.sleep(0.2)
+        animObj.pause()
+        animObj.rewind()
+        self.assertEqual(animObj.elapsed, 0)
+
+        animObj.play()
+        time.sleep(0.2)
+        animObj.pause()
+        origElapsed = animObj.elapsed
+        animObj.rewind(0.1)
+        self.assertEqual(animObj.elapsed, origElapsed - 100)
+
+
+    def test_fastForward(self):
+        animObj = getTestAnimObj()
+        self.assertEqual(animObj.state, pygame.STOPPED)
+        animObj.fastForward(0.375)
+        self.assertEqual(animObj.elapsed, 0.375)
+        self.assertEqual(animObj.state, pygame.PAUSED)
+
+        animObj = getTestAnimObj()
+        animObj.play()
+        time.sleep(0.2)
+        animObj.pause()
+        origElapsed = animObj.elapsed
+        animObj.rewind(0.1)
+        self.assertEqual(animObj.elapsed, origElapsed - 100)
+
+
+class MiscTests(unittest.TestCase):
+    # This is here just to make sure the test images of the lightning bolts haven't changed.
+    def test_getBoundedValue(self):
+        self.assertEqual(pyganim.getBoundedValue(0, 5, 10), 5)
+        self.assertEqual(pyganim.getBoundedValue(0, 0, 10), 0)
+        self.assertEqual(pyganim.getBoundedValue(0, -5, 10), 0)
+        self.assertEqual(pyganim.getBoundedValue(0, 10, 10), 10)
+        self.assertEqual(pyganim.getBoundedValue(0, 15, 10), 10)
+
+        self.assertEqual(pyganim.getBoundedValue(0, -5, -10), -5)
+        self.assertEqual(pyganim.getBoundedValue(0, 0, -10), 0)
+        self.assertEqual(pyganim.getBoundedValue(0, 5, -10), 0)
+        self.assertEqual(pyganim.getBoundedValue(0, -10, -10), -10)
+        self.assertEqual(pyganim.getBoundedValue(0, -15, -10), -10)
+
+        self.assertEqual(pyganim.getBoundedValue(-10, -5, 0), -5)
+        self.assertEqual(pyganim.getBoundedValue(-10, 0, 0), 0)
+        self.assertEqual(pyganim.getBoundedValue(-10, 5, 0), 0)
+        self.assertEqual(pyganim.getBoundedValue(-10, -10, 0), -10)
+        self.assertEqual(pyganim.getBoundedValue(-10, -15, 0), -10)
+
+    def test_findStartTime(self):
+        st = [0, 1000, 2000, 4000, 8000, 16000]
+        self.assertEqual(pyganim.findStartTime(st, 0), 0)
+        self.assertEqual(pyganim.findStartTime(st, 999), 0)
+        self.assertEqual(pyganim.findStartTime(st, 1000), 1)
+        self.assertEqual(pyganim.findStartTime(st, 1001), 1)
+        self.assertEqual(pyganim.findStartTime(st, 1999), 1)
+        self.assertEqual(pyganim.findStartTime(st, 2000), 2)
+        self.assertEqual(pyganim.findStartTime(st, 2001), 2)
+        self.assertEqual(pyganim.findStartTime(st, 3999), 2)
+        self.assertEqual(pyganim.findStartTime(st, 4000), 3)
+        self.assertEqual(pyganim.findStartTime(st, 9999999), 4)
 
 
 if __name__ == '__main__':

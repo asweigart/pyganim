@@ -300,14 +300,7 @@ class PygAnimation(object):
 
         # togglePause() is essentially a setter function for self._state
         if self._state == PLAYING:
-            if self.isFinished():
-                # the one exception: if this animation doesn't loop and it
-                # has finished playing, then toggling the pause will cause
-                # the animation to replay from the beginning.
-                #self._playingStartTime = int(time.time() * 1000) # effectively the same as calling play()
-                self.play()
-            else:
-                self.pause()
+            self.pause()
         elif self._state in (PAUSED, STOPPED):
             self.play()
         else:
@@ -427,7 +420,7 @@ class PygAnimation(object):
     def fastForward(self, seconds):
         # Set the elapsed time forward relative to the current elapsed time.
         if seconds is None:
-            self.elapsed = self._startTimes[-1] ##- 0.00002 # done to compensate for rounding errors
+            self.elapsed = self._startTimes[-1]
         else:
             self.elapsed += (seconds * 1000) # elapsed is in milliseconds
 
@@ -606,15 +599,13 @@ class PygAnimation(object):
 
 
     def _propSetElapsed(self, elapsed):
-        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
-        ##elapsed += 0.00001 # done to compensate for rounding errors
-        # TODO - I really need to find a better way to handle the floating point thing.
-
         # Set the elapsed time to a specific value.
+
+        # NOTE: elapsed is in milliseconds
         if self._loop:
             elapsed = elapsed % self._startTimes[-1]
         else:
-            elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
+            elapsed = getBoundedValue(0, elapsed, self._startTimes[-1])
 
         rightNow = int(time.time() * 1000)
         self._playingStartTime = rightNow - (elapsed * self.rate)
@@ -625,11 +616,11 @@ class PygAnimation(object):
 
 
     def _propGetElapsed(self):
-        # NOTE: Do to floating point rounding errors, this doesn't work precisely.
-
         # To prevent infinite recursion, don't use the self.state property,
         # just read/set self._state directly because the state getter calls
         # this method.
+
+        # NOTE: Elapsed is in milliseconds, not seconds.
         assert self._state in (PLAYING, PAUSED, STOPPED), '_state attribute contains an invalid value: %s' % (str(self._state)[:40])
 
         # Find out how long ago the play()/pause() functions were called.
@@ -647,12 +638,13 @@ class PygAnimation(object):
             # PygAnimation object was paused
             elapsed = (self._pausedStartTime - self._playingStartTime) * self.rate
 
+        elapsed = int(elapsed)
+
         if self._loop:
             elapsed = elapsed % self._startTimes[-1]
         else:
-            elapsed = getInBetweenValue(0, elapsed, self._startTimes[-1])
-        ##elapsed += 0.00001 # done to compensate for rounding errors
-        return elapsed
+            elapsed = getBoundedValue(0, elapsed, self._startTimes[-1])
+        return int(elapsed)
 
     elapsed = property(_propGetElapsed, _propSetElapsed)
 
@@ -671,7 +663,7 @@ class PygAnimation(object):
         if self.loop:
             frameNum = frameNum % len(self._images)
         else:
-            frameNum = getInBetweenValue(0, frameNum, len(self._images)-1)
+            frameNum = getBoundedValue(0, frameNum, len(self._images)-1)
         self.elapsed = self._startTimes[frameNum]
 
     currentFrameNum = property(_propGetCurrentFrameNum, _propSetCurrentFrameNum)
@@ -812,11 +804,14 @@ class PygConductor(object):
             animObj.unlock()
 
 
-def getInBetweenValue(lowerBound, value, upperBound):
+def getBoundedValue(lowerBound, value, upperBound):
     # Returns the value within the bounds of the lower and upper bound parameters.
     # If value is less than lowerBound, then return lowerBound.
     # If value is greater than upperBound, then return upperBound.
     # Otherwise, just return value as it is.
+    if upperBound < lowerBound:
+        upperBound, lowerBound = lowerBound, upperBound
+
     if value < lowerBound:
         return lowerBound
     elif value > upperBound:
@@ -828,9 +823,9 @@ def findStartTime(startTimes, target):
     # With startTimes as a list of sequential numbers and target as a number,
     # returns the index of the number in startTimes that preceeds target.
     #
-    # For example, if startTimes was [0, 2, 4.5, 7.3, 10] and target was 6,
-    # then findStartTime() would return 2. If target was 12, returns 4.
-    assert startTimes[0] == 0
+    # For example, if startTimes was [0, 2000, 4500, 7300, 10000] and target was 6000,
+    # then findStartTime() would return 2. If target was 12000, returns 4.
+    assert startTimes[0] == 0, 'The first value in the start times list should always be 0.'
     lb = 0 # "lb" is lower bound
     ub = len(startTimes) - 1 # "ub" is upper bound
 
