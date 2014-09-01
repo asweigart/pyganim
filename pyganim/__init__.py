@@ -21,7 +21,19 @@
 
 __version__ = '1.0.0'
 
-import pygame, time
+import pygame
+import time
+import sys
+
+try:
+    from PIL import Image
+    import os
+except ImportError:
+    pass # PIL/Pillow is not required for Pyganim unless you want to load from animated gifs.
+
+runningOnPython2 = sys.version_info[0] == 2
+
+
 
 # setting up constants
 PLAYING = 'playing'
@@ -79,6 +91,18 @@ class PygAnimation(object):
         self._pausedStartTime = 0 # the time that the pause() function was last called.
 
         # NOTE: There is no "self._elapsed" attribute. "Elapsed" is always calculated based on the current time and _playingStartTime.
+
+        if type(frames) == str and frames.endswith('.gif'):
+            # frames is an animated gif filename
+            gifImages = splitGif(frames)
+            # NOTE: I can't understand how PIL and Pygame's tobytes()/tostring()/fromstring() methods work, hence the use of temporary files.
+            # NOTE: Named temp files delete themselves on close on Windows, so the temp file has to be created here.
+            frames = []
+            for frame in gifImages:
+                frame.save('temppyganim.gif')
+                frames.append((pygame.image.load('temppyganim.gif'), frame.info['duration'] / 1000)) # duration is already in milliseconds, so compensate
+                os.unlink('temppyganim.gif')
+
 
         if frames != '_copy': # ('_copy' is passed for frames by the getCopies() method)
             self.numFrames = len(frames)
