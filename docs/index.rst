@@ -11,6 +11,12 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   install.rst
+   basics.rst
+   spritesheetsgifs.rst
+   transformations.rst
+   unittests.rst
+
 
 
 Indices and tables
