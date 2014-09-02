@@ -38,14 +38,13 @@ def compareSurfaces(surf1, surf2):
                 del px1
                 del px2
                 return 'Pixel at %s, %s is different: %s and %s' % (x, y, color1, color2)
-    del px1
-    del px2
     return None # on success, return None
 
 
 class TestTestImages(unittest.TestCase):
     # This is here just to make sure the test images of the lightning bolts haven't changed.
     def test_images(self):
+        # test bolt images
         boltSha1Sums = {1: 'd556336b479921148ef5199cf0fa8258501603f3',
                         2: '970ae0745ebef5e57c8a04acb7cb98f1478777ca',
                         3: '377e34ced2a7594dd591d08e47eb7b87ce3d4e0a',
@@ -62,6 +61,21 @@ class TestTestImages(unittest.TestCase):
             s = hashlib.sha1(boltFile.read())
             boltFile.close()
             self.assertEqual(s.hexdigest(), boltSha1Sums[i])
+
+        # test animated gif
+        gifFile = open('banana.gif', 'rb')
+        s = hashlib.sha1(gifFile.read())
+        gifFile.close()
+        self.assertEqual(s.hexdigest(), '65137061474887dfa0f183f2bc118a3e52fc353e')
+
+        # test sprite sheet
+        spritesheetFile = open('smokeSpritesheet.png', 'rb')
+        s = hashlib.sha1(spritesheetFile.read())
+        spritesheetFile.close()
+        self.assertEqual(s.hexdigest(), '566cdeb39ffa26e1fb4e0486a16e22de7ac9f6c4')
+
+        # TODO - add code that checks the individual smoke spritesheet images
+
 
 
 class TestGeneral(unittest.TestCase):
@@ -375,6 +389,106 @@ class TestGeneral(unittest.TestCase):
         self.assertEqual(len(animObj._images), 8)
         for i in range(8):
             self.assertEqual(animObj._durations[i], 100)
+
+
+class TestSpritesheet(unittest.TestCase):
+    def test_loading(self):
+        # TODO - once I figure out transparency, I need to check the images against the individual frames.
+        NUM_SPRITES = 10
+        SMOKE_WIDTH = 96
+        SMOKE_HEIGHT = 94
+        smokeImages = [pygame.image.load('smoke%s.png' % i) for i in range(NUM_SPRITES)]
+
+
+        # basic loading test using width/height arguments
+        sheet = pyganim.Spritesheet('smokeSpritesheet.png', width=SMOKE_WIDTH, height=SMOKE_HEIGHT)
+        animObj = pyganim.PygAnimation(sheet.frames)
+
+        self.assertEqual(len(animObj._images), NUM_SPRITES)
+        self.assertTrue(animObj.framesAreSameSize())
+        self.assertEqual(animObj._images[0].get_width(), SMOKE_WIDTH)
+        self.assertEqual(animObj._images[0].get_height(), SMOKE_HEIGHT)
+
+        for i in range(NUM_SPRITES):
+            self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
+
+        # basic loading test using width/height arguments with default height
+        sheet = pyganim.Spritesheet('smokeSpritesheet.png', width=SMOKE_WIDTH)
+        animObj = pyganim.PygAnimation(sheet.frames)
+
+        self.assertEqual(len(animObj._images), NUM_SPRITES)
+        self.assertTrue(animObj.framesAreSameSize())
+        self.assertEqual(animObj._images[0].get_width(), SMOKE_WIDTH)
+        self.assertEqual(animObj._images[0].get_height(), SMOKE_HEIGHT)
+
+        for i in range(NUM_SPRITES):
+            self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
+
+        # basic loading test using row/col arguments
+        sheet = pyganim.Spritesheet('smokeSpritesheet.png', rows=1, cols=NUM_SPRITES)
+        animObj = pyganim.PygAnimation(sheet.frames)
+
+        self.assertEqual(len(animObj._images), NUM_SPRITES)
+        self.assertTrue(animObj.framesAreSameSize())
+        self.assertEqual(animObj._images[0].get_width(), SMOKE_WIDTH)
+        self.assertEqual(animObj._images[0].get_height(), SMOKE_HEIGHT)
+
+        for i in range(NUM_SPRITES):
+            self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
+
+        # basic loading test using row/col arguments with default rows
+        sheet = pyganim.Spritesheet('smokeSpritesheet.png', cols=NUM_SPRITES)
+        animObj = pyganim.PygAnimation(sheet.frames)
+
+        self.assertEqual(len(animObj._images), NUM_SPRITES)
+        self.assertTrue(animObj.framesAreSameSize())
+        self.assertEqual(animObj._images[0].get_width(), SMOKE_WIDTH)
+        self.assertEqual(animObj._images[0].get_height(), SMOKE_HEIGHT)
+
+        for i in range(NUM_SPRITES):
+            self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
+
+        # loading using rects arguments
+        rects = []
+        index = 0
+        for x in range(0, SMOKE_WIDTH * NUM_SPRITES, SMOKE_WIDTH):
+            rects.append((x, 0, SMOKE_WIDTH, SMOKE_HEIGHT, index))
+            index += 1
+        sheet = pyganim.Spritesheet('smokeSpritesheet.png', rects=rects)
+        animObj = pyganim.PygAnimation(sheet.frames)
+
+        self.assertEqual(len(animObj._images), NUM_SPRITES)
+        self.assertTrue(animObj.framesAreSameSize())
+        self.assertEqual(animObj._images[0].get_width(), SMOKE_WIDTH)
+        self.assertEqual(animObj._images[0].get_height(), SMOKE_HEIGHT)
+
+        for i in range(NUM_SPRITES):
+            self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
+
+        # loading using rects arguments with indexes in an arbitrary order
+        rects = []
+        indexes = [9, 3, 6, 0, 1, 2, 4, 7, 5, 8]
+        i = 0
+        for x in range(0, SMOKE_WIDTH * NUM_SPRITES, SMOKE_WIDTH):
+            rects.append((x, 0, SMOKE_WIDTH, SMOKE_HEIGHT, indexes[i]))
+            i += 1
+        sheet = pyganim.Spritesheet('smokeSpritesheet.png', rects=rects)
+        animObj = pyganim.PygAnimation(sheet.frames)
+
+        self.assertEqual(len(animObj._images), NUM_SPRITES)
+        self.assertTrue(animObj.framesAreSameSize())
+        self.assertEqual(animObj._images[0].get_width(), SMOKE_WIDTH)
+        self.assertEqual(animObj._images[0].get_height(), SMOKE_HEIGHT)
+
+        for i in range(NUM_SPRITES):
+            self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[indexes[i]])))
+
+
+        # TODO - test again using spritesheet with multiple rows
+
+        #for i in range(len(animObj._images)):
+        #    animObj._images[i].set_alpha(255)
+        #    pygame.image.save(animObj._images[i], 'smoke%s.png' % (i))
 
 
 

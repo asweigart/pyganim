@@ -14,9 +14,7 @@
 
 
 # TODO: Feature idea: if the same image file is specified, re-use the Surface object. (Make this optional though.)
-# TODO: autoplay member for the ctor
 # TODO: sprite sheet support
-# TODO: automatically load animated gifs and pngs.
 # TODO: Dynamically change durations and number of frames.
 
 __version__ = '1.0.0'
@@ -25,10 +23,6 @@ import pygame
 import time
 import sys
 import os
-
-
-runningOnPython2 = sys.version_info[0] == 2
-
 
 
 # setting up constants
@@ -46,6 +40,95 @@ E = EAST = 'e'
 SW = SOUTHWEST = 'sw'
 S = SOUTH = 's'
 SE = SOUTHEAST = 'se'
+
+
+class Spritesheet(object):
+    def __init__(self, filename, width=None, height=None, rows=None, cols=None, rects=None, durations=1000):
+        argsPassed = 0
+        if (width is not None or height is not None):
+            argsPassed += 1
+        if (rows is not None or cols is not None):
+            argsPassed += 1
+        if (rects is not None):
+            argsPassed += 1
+        if argsPassed != 1:
+            raise ValueError('Only pass one set of args of: width/height, rows/cols, rects')
+
+        if rects is not None:
+            indexesUsed = [False] * len(rects)
+            for _x, _y, _width, _height, index in rects:
+                if indexesUsed[index]:
+                    raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
+                indexesUsed[index] = True
+            if False in indexesUsed:
+                raise ValueError('The rects argument does not have an %s index.' % (indexesUsed.find(False)))
+
+
+        sheet = pygame.image.load(filename)
+        if (width is not None or height is not None):
+            if width is None:
+                width = sheet.get_width() # defaults to full width of sheet
+            else:
+                width = int(width)
+            if height is None:
+                height = sheet.get_height() # defaults to full height of sheet
+            else:
+                height = int(height)
+
+            if sheet.get_width() % width != 0:
+                raise ValueError('Sheet width of %s is not evenly divisible by %s.' % (sheet.get_width(), width))
+            if sheet.get_height() % height != 0:
+                raise ValueError('Sheet height of %s is not evenly divisible by %s.' % (sheet.get_height(), height))
+
+
+        if (rows is not None or cols is not None):
+            # If the rows/cols parameters were specified, set the defaults and validate, and set width/height (which will be used to fake the rects argument)
+            if rows is None:
+                rows = 1
+            else:
+                rows = int(rows)
+            if cols is None:
+                cols = 1
+            else:
+                cols = int(cols)
+
+            if sheet.get_height() % rows != 0:
+                raise ValueError('Sheet height of %s is not evenly divisible into %s rows.' % (sheet.get_height(), rows))
+            if sheet.get_width() % cols != 0:
+                raise ValueError('Sheet width of %s is not evenly divisible into %s columns.' % (sheet.get_width(), cols))
+
+            width = int(sheet.get_width() / cols)
+            height = int(sheet.get_height() / rows)
+
+
+        if rects is None:
+            # if rects argument was not provided, use the width/height or rows/cols arguments to generate one.
+            rects = []
+            index = 0
+            for x in range(0, sheet.get_width(), width):
+                for y in range(0, sheet.get_height(), height):
+                    rects.append((x, y, width, height, index))
+                    index += 1
+
+        if type(durations) in (int, float):
+            # if durations argument was an int or float, convert it to a list of those values.
+            durations = [durations] * len(rects)
+
+        if len(rects) != len(durations):
+            raise ValueError('Length of durations (%s) must equal number of rects in rects (%s).' % (len(durations), len(rects)))
+
+        self.sprites = []
+        spritesheet = pygame.image.load(filename)
+        for x, y, width, height, index in rects:
+            surf = pygame.Surface((width, height)) # TODO - need transparency support
+            surf.blit(spritesheet, (0, 0), pygame.Rect(x, y, width, height))
+            self.sprites.append(surf)
+
+        self.frames = []
+        for i in range(len(self.sprites)):
+            self.frames.append((self.sprites[i], durations[i]))
+
+        self.durations = durations
 
 
 class PygAnimation(object):
@@ -875,25 +958,26 @@ def splitGif(filename):
     # Takes a filename of an animated GIF and returns a list of Image objects of each frame.
     # Requires PIL or Pillow to be installed
     from PIL import Image
+
+    def iterAnimatedGifFrames(im):
+        # Iterator for frames in an animated GIF.
+        try:
+            i= 0
+            while 1:
+                im.seek(i)
+                imframe = im.copy()
+                if i == 0:
+                    palette = imframe.getpalette()
+                else:
+                    imframe.putpalette(palette)
+                yield imframe
+                i += 1
+        except EOFError:
+            pass
+
     gifFile = open(str(filename), 'rb')
     im = Image.open(gifFile) # passing a file-like object so that we can close it and the unit tests won't complain.
     retVal = list(iterAnimatedGifFrames(im))
     gifFile.close()
     return retVal
 
-
-def iterAnimatedGifFrames(im):
-    # Iterator for frames in an animated GIF.
-    try:
-        i= 0
-        while 1:
-            im.seek(i)
-            imframe = im.copy()
-            if i == 0:
-                palette = imframe.getpalette()
-            else:
-                imframe.putpalette(palette)
-            yield imframe
-            i += 1
-    except EOFError:
-        pass
