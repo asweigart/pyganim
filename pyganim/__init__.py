@@ -14,7 +14,6 @@
 
 
 # TODO: Feature idea: if the same image file is specified, re-use the Surface object. (Make this optional though.)
-# TODO: sprite sheet support
 # TODO: Dynamically change durations and number of frames.
 
 __version__ = '1.0.0'
@@ -44,6 +43,15 @@ SE = SOUTHEAST = 'se'
 
 class Spritesheet(object):
     def __init__(self, filename, width=None, height=None, rows=None, cols=None, rects=None, durations=1000):
+        """Loads several sprites from a single image file (a "spritesheet").
+
+        One (and only one) of the following parameters should be specified:
+            * width & height of each sprite (all must be the same size)
+            * number of rows and columns of sprites (all must be the same size)
+            *
+        """
+
+
         argsPassed = 0
         if (width is not None or height is not None):
             argsPassed += 1
@@ -56,10 +64,17 @@ class Spritesheet(object):
 
         if rects is not None:
             indexesUsed = [False] * len(rects)
-            for _x, _y, _width, _height, index in rects:
-                if indexesUsed[index]:
-                    raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
-                indexesUsed[index] = True
+            assert len(rects) in (2, 5), '"rect" argument must be (pygame.Rect, index) or (x, y, width, height, index), not length of %s.' % (len(rects))
+            if len(rects) == 2:
+                for _rect, index in rects:
+                    if indexesUsed[index]:
+                        raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
+                    indexesUsed[index] = True
+            elif len(rects) == 5:
+                for _x, _y, _width, _height, index in rects: # TODO - or, let caller pass a Rect object.
+                    if indexesUsed[index]:
+                        raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
+                    indexesUsed[index] = True
             if False in indexesUsed:
                 raise ValueError('The rects argument does not have an %s index.' % (indexesUsed.find(False)))
 
