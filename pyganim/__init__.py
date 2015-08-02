@@ -48,7 +48,7 @@ class Spritesheet(object):
         One (and only one) of the following parameters should be specified:
             * width & height of each sprite (all must be the same size)
             * number of rows and columns of sprites (all must be the same size)
-            *
+            * rects, which is a list of tuples formatted as (pygame.Rect, index) or (left, top, width, height. index)
         """
 
 
@@ -64,19 +64,24 @@ class Spritesheet(object):
 
         if rects is not None:
             indexesUsed = [False] * len(rects)
-            assert len(rects) in (2, 5), '"rect" argument must be (pygame.Rect, index) or (x, y, width, height, index), not length of %s.' % (len(rects))
-            if len(rects) == 2:
-                for _rect, index in rects:
+
+            for rect in rects:
+                assert len(rect) in (2, 5), '"rect" argument must be (pygame.Rect, index) or (left, top, width, height, index), not length of %s.' % (len(rects))
+                if len(rect) == 2:
+                    assert type(rect[0]) == type(pygame.Rect((1,1,1,1))), 'First item in rect tuple must be pygame.Rect object'
+                    assert type(rect[1]) == int, 'Second item in rect tuple must by int'
+                    _rect, index = rect
                     if indexesUsed[index]:
                         raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
                     indexesUsed[index] = True
-            elif len(rects) == 5:
-                for _x, _y, _width, _height, index in rects: # TODO - or, let caller pass a Rect object.
+                elif len(rect) == 5:
+                    assert type(rect[4]) == int, 'Fifth item in rect tuple must by int'
+                    _x, _y, _width, _height, index = rect
                     if indexesUsed[index]:
                         raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
                     indexesUsed[index] = True
             if False in indexesUsed:
-                raise ValueError('The rects argument does not have an %s index.' % (indexesUsed.find(False)))
+                raise ValueError('The rects argument does not have an %s index.' % (indexesUsed.index(False)))
 
 
         sheet = pygame.image.load(filename)
