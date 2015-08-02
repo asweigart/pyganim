@@ -16,7 +16,7 @@
 # TODO: Feature idea: if the same image file is specified, re-use the Surface object. (Make this optional though.)
 # TODO: Dynamically change durations and number of frames.
 
-__version__ = '1.0.0'
+__version__ = '0.9.1'
 
 import pygame
 import time
@@ -40,6 +40,7 @@ SW = SOUTHWEST = 'sw'
 S = SOUTH = 's'
 SE = SOUTHEAST = 'se'
 
+TIME_FUNC = lambda: int(time.time() * 1000)
 
 class Spritesheet(object):
     def __init__(self, filename, width=None, height=None, rows=None, cols=None, rects=None, durations=1000):
@@ -51,8 +52,7 @@ class Spritesheet(object):
             * rects, which is a list of tuples formatted as (pygame.Rect, index) or (left, top, width, height. index)
         """
 
-
-        argsPassed = 0
+        argsPassed = 0 # there should be exactly 1 set of arguments passed (i.e. don't pass width/height AND rows/cols)
         if (width is not None or height is not None):
             argsPassed += 1
         if (rows is not None or cols is not None):
@@ -157,8 +157,8 @@ class PygAnimation(object):
         #
         # @param frames
         #     A list of tuples for each frame of animation, in one of the following format:
-        #       (image_of_frame<pygame.Surface>, duration_in_seconds<int>)
-        #       (filename_of_image<str>, duration_in_seconds<int>)
+        #       (image_of_frame<pygame.Surface>, duration_in_milliseconds<int>)
+        #       (filename_of_image<str>, duration_in_milliseconds<int>)
         #     Note that the images and duration cannot be changed. A new PygAnimation object
         #     will have to be created.
         # @param loop Tells the animation object to keep playing in a loop.
@@ -198,7 +198,7 @@ class PygAnimation(object):
             frames = []
             for im in gifImages:
                 im.save('.temp_pyganim.gif')
-                frames.append((pygame.image.load('.temp_pyganim.gif'), im.info['duration'] / 1000.0)) # duration is already in milliseconds, so compensate
+                frames.append((pygame.image.load('.temp_pyganim.gif'), im.info['duration'])) # gif duration is already in milliseconds
                 os.unlink('.temp_pyganim.gif')
 
         if frames != '_copy': # ('_copy' is passed for frames by the getCopies() method)
@@ -206,7 +206,7 @@ class PygAnimation(object):
             assert self.numFrames > 0, 'Must contain at least one frame.'
             for i in range(self.numFrames):
                 # load each frame of animation into _images
-                frame = (frames[i][0], int(frames[i][1] * 1000)) # internally, we store milliseconds as integers rather than seconds to avoid rounding errors
+                frame = (frames[i][0], int(frames[i][1]))
                 assert type(frame) in (list, tuple) and len(frame) == 2, 'Frame %s has incorrect format. It should be a tuple of length 2, first item a pygame.Surface or image filename, second item an int/float of duration.' % (i)
                 assert type(frame[0]) in (str, pygame.Surface), 'Frame %s image must be a string filename or a pygame.Surface' % (i)
                 assert frame[1] > 0, 'Frame %s duration must be greater than zero.' % (i)
@@ -368,7 +368,7 @@ class PygAnimation(object):
 
         # play() is essentially a setter function for self._state
         if startTime is None:
-            startTime = int(time.time() * 1000)
+            startTime = TIME_FUNC()
 
         if self._state == PLAYING:
             if self.isFinished():
@@ -391,14 +391,14 @@ class PygAnimation(object):
 
         # pause() is essentially a setter function for self._state
         if startTime is None:
-            startTime = int(time.time() * 1000)
+            startTime = TIME_FUNC()
 
         if self._state == PAUSED:
             return # do nothing
         elif self._state == PLAYING:
             self._pausedStartTime = startTime
         elif self._state == STOPPED:
-            rightNow = int(time.time() * 1000)
+            rightNow = TIME_FUNC()
             self._playingStartTime = rightNow
             self._pausedStartTime = rightNow
         else:
@@ -530,20 +530,20 @@ class PygAnimation(object):
         self.currentFrameNum -= int(jump)
 
 
-    def rewind(self, seconds=None):
+    def rewind(self, milliseconds=None):
         # Set the elapsed time back relative to the current elapsed time.
-        if seconds is None:
+        if milliseconds is None:
             self.elapsed = 0.0
         else:
-            self.elapsed -= (seconds * 1000) # elapsed is in milliseconds
+            self.elapsed -= milliseconds
 
 
-    def fastForward(self, seconds):
+    def fastForward(self, milliseconds):
         # Set the elapsed time forward relative to the current elapsed time.
-        if seconds is None:
+        if milliseconds is None:
             self.elapsed = self._startTimes[-1]
         else:
-            self.elapsed += (seconds * 1000) # elapsed is in milliseconds
+            self.elapsed += milliseconds
 
     def _makeTransformedSurfacesIfNeeded(self):
         # Internal-method. Creates the Surface objects for the _transformedImages list.
@@ -685,7 +685,7 @@ class PygAnimation(object):
             # we need to modify the _playingStartTime so that the rest of
             # the animation will play, and then stop. (Otherwise, the
             # animation will immediately stop playing if it has already looped.)
-            self._playingStartTime = int(time.time() * 1000) - self.elapsed
+            self._playingStartTime = TIME_FUNC() - self.elapsed
         self._loop = bool(loop)
 
     loop = property(_propGetLoop, _propSetLoop)
@@ -731,7 +731,7 @@ class PygAnimation(object):
         else:
             elapsed = getBoundedValue(0, elapsed, self._startTimes[-1])
 
-        rightNow = int(time.time() * 1000)
+        rightNow = TIME_FUNC()
         self._playingStartTime = rightNow - (elapsed * self.rate)
 
         if self.state in (PAUSED, STOPPED):
@@ -755,7 +755,7 @@ class PygAnimation(object):
             # if playing, then draw the current frame (based on when the animation
             # started playing). If not looping and the animation has gone through
             # all the frames already, then draw the last frame.
-            elapsed = (int(time.time() * 1000) - self._playingStartTime) * self.rate
+            elapsed = (TIME_FUNC() - self._playingStartTime) * self.rate
         elif self._state == PAUSED:
             # if paused, then draw the frame that was playing at the time the
             # PygAnimation object was paused
@@ -822,14 +822,14 @@ class PygConductor(object):
 
     def play(self, startTime=None):
         if startTime is None:
-            startTime = int(time.time() * 1000)
+            startTime = TIME_FUNC()
 
         for animObj in self._animations:
             animObj.play(startTime)
 
     def pause(self, startTime=None):
         if startTime is None:
-            startTime = int(time.time() * 1000)
+            startTime = TIME_FUNC()
 
         for animObj in self._animations:
             animObj.pause(startTime)

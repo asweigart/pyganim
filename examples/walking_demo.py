@@ -48,7 +48,7 @@ playerWidth, playerHeight = front_standing.get_size()
 animTypes = 'back_run back_walk front_run front_walk left_run left_walk'.split()
 animObjs = {}
 for animType in animTypes:
-    imagesAndDurations = [('gameimages/crono_%s.%s.gif' % (animType, str(num).rjust(3, '0')), 0.1) for num in range(6)]
+    imagesAndDurations = [('gameimages/crono_%s.%s.gif' % (animType, str(num).rjust(3, '0')), 100) for num in range(6)]
     animObjs[animType] = pyganim.PygAnimation(imagesAndDurations)
 
 # create the right-facing sprites by copying and flipping the left-facing sprites

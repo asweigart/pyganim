@@ -25,16 +25,16 @@ windowSurface = pygame.display.set_mode((320, 240), 0, 32)
 pygame.display.set_caption('Pyganim Basic Demo')
 
 # create the animation objects   ('filename of image',    duration_in_seconds)
-boltAnim = pyganim.PygAnimation([('testimages/bolt_strike_0001.png', 0.1),
-                                 ('testimages/bolt_strike_0002.png', 0.1),
-                                 ('testimages/bolt_strike_0003.png', 0.1),
-                                 ('testimages/bolt_strike_0004.png', 0.1),
-                                 ('testimages/bolt_strike_0005.png', 0.1),
-                                 ('testimages/bolt_strike_0006.png', 0.1),
-                                 ('testimages/bolt_strike_0007.png', 0.1),
-                                 ('testimages/bolt_strike_0008.png', 0.1),
-                                 ('testimages/bolt_strike_0009.png', 0.1),
-                                 ('testimages/bolt_strike_0010.png', 0.1)])
+boltAnim = pyganim.PygAnimation([('testimages/bolt_strike_0001.png', 100),
+                                 ('testimages/bolt_strike_0002.png', 100),
+                                 ('testimages/bolt_strike_0003.png', 100),
+                                 ('testimages/bolt_strike_0004.png', 100),
+                                 ('testimages/bolt_strike_0005.png', 100),
+                                 ('testimages/bolt_strike_0006.png', 100),
+                                 ('testimages/bolt_strike_0007.png', 100),
+                                 ('testimages/bolt_strike_0008.png', 100),
+                                 ('testimages/bolt_strike_0009.png', 100),
+                                 ('testimages/bolt_strike_0010.png', 100)])
 boltAnim.play() # there is also a pause() and stop() method
 
 mainClock = pygame.time.Clock()

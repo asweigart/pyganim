@@ -1,14 +1,9 @@
-
 from setuptools import setup
-
-
-# Dynamically calculate the version based on pyganim.VERSION.
-version = __import__('pyganim').__version__
 
 
 setup(
     name='Pyganim',
-    version=version,
+    version='0.9.1',
     url='http://inventwithpython.com/pyganim',
     author='Al Sweigart',
     author_email='al@inventwithpython.com',
@@ -30,5 +25,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
     ],
 )

@@ -24,16 +24,16 @@ windowSurface = pygame.display.set_mode((WINWIDTH, WINHEIGHT), 0, 32)
 pygame.display.set_caption('Pyganim Control Panel')
 
 # create the animation objects
-boltAnim = pyganim.PygAnimation([('testimages/bolt_strike_0001.png', 0.2),
-                                 ('testimages/bolt_strike_0002.png', 0.2),
-                                 ('testimages/bolt_strike_0003.png', 0.2),
-                                 ('testimages/bolt_strike_0004.png', 0.2),
-                                 ('testimages/bolt_strike_0005.png', 0.2),
-                                 ('testimages/bolt_strike_0006.png', 0.2),
-                                 ('testimages/bolt_strike_0007.png', 0.2),
-                                 ('testimages/bolt_strike_0008.png', 0.2),
-                                 ('testimages/bolt_strike_0009.png', 0.2),
-                                 ('testimages/bolt_strike_0010.png', 0.2)])
+boltAnim = pyganim.PygAnimation([('testimages/bolt_strike_0001.png', 200),
+                                 ('testimages/bolt_strike_0002.png', 200),
+                                 ('testimages/bolt_strike_0003.png', 200),
+                                 ('testimages/bolt_strike_0004.png', 200),
+                                 ('testimages/bolt_strike_0005.png', 200),
+                                 ('testimages/bolt_strike_0006.png', 200),
+                                 ('testimages/bolt_strike_0007.png', 200),
+                                 ('testimages/bolt_strike_0008.png', 200),
+                                 ('testimages/bolt_strike_0009.png', 200),
+                                 ('testimages/bolt_strike_0010.png', 200)])
 
 boltAnim.play()
 
@@ -70,9 +70,9 @@ while True:
                     elif button == 'Toggle':
                         boltAnim.togglePause()
                     elif button == 'Rew.':
-                        boltAnim.rewind(0.1)
+                        boltAnim.rewind(100)
                     elif button == 'FF':
-                        boltAnim.fastForward(0.1)
+                        boltAnim.fastForward(100)
                     elif button == 'Loop':
                         boltAnim.loop = not boltAnim.loop
                     elif button == 'Rev':

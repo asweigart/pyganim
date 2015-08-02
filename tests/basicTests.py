@@ -11,7 +11,7 @@ import pyganim
 
 runningOnPython2 = sys.version_info[0] == 2
 NUM_BOLT_IMAGES = 10
-BOLT_DURATIONS = 0.1
+BOLT_DURATIONS = 100
 BOLT_WIDTH, BOLT_HEIGHT = pygame.image.load('bolt1.png').get_size()
 
 
@@ -220,7 +220,7 @@ class TestGeneral(unittest.TestCase):
         animObj.loop = False
         animObj.play()
         self.assertEqual(animObj.isFinished(), False)
-        time.sleep(BOLT_DURATIONS * (NUM_BOLT_IMAGES + 1)) # should be enough time to finish a single run through of the animation
+        time.sleep((BOLT_DURATIONS * (NUM_BOLT_IMAGES + 1)) / 1000.0) # should be enough time to finish a single run through of the animation
         self.assertEqual(animObj.isFinished(), True)
 
         # test on animation that loops
@@ -228,7 +228,7 @@ class TestGeneral(unittest.TestCase):
         animObj.loop = True
         animObj.play()
         self.assertEqual(animObj.isFinished(), False)
-        time.sleep(BOLT_DURATIONS * (NUM_BOLT_IMAGES + 1)) # should be enough time to finish a single run through of the animation
+        time.sleep((BOLT_DURATIONS * (NUM_BOLT_IMAGES + 1)) / 1000.0) # should be enough time to finish a single run through of the animation
         self.assertEqual(animObj.isFinished(), False) # looping animations are never finished
 
 
@@ -295,7 +295,7 @@ class TestGeneral(unittest.TestCase):
         self.assertTrue(animObj.loop)
         for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
             animObj.play()
-            time.sleep(BOLT_DURATIONS)
+            time.sleep(BOLT_DURATIONS / 1000.0)
             animObj.pause()
             self.assertEqual(i % NUM_BOLT_IMAGES, animObj.currentFrameNum)
 
@@ -304,7 +304,7 @@ class TestGeneral(unittest.TestCase):
         animObj.loop = False
         for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
             animObj.play()
-            time.sleep(BOLT_DURATIONS)
+            time.sleep(BOLT_DURATIONS / 1000.0)
             animObj.pause()
             if i >= NUM_BOLT_IMAGES:
                 self.assertEqual(NUM_BOLT_IMAGES - 1, animObj.currentFrameNum) # with looping off, the currentFrameNum does not advance after the last frame
@@ -317,7 +317,7 @@ class TestGeneral(unittest.TestCase):
         self.assertTrue(animObj.loop)
         for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
             animObj.togglePause()
-            time.sleep(BOLT_DURATIONS)
+            time.sleep(BOLT_DURATIONS / 1000.0)
             animObj.togglePause()
             self.assertEqual(i % NUM_BOLT_IMAGES, animObj.currentFrameNum)
 
@@ -326,7 +326,7 @@ class TestGeneral(unittest.TestCase):
         animObj.loop = False
         for i in range(1, NUM_BOLT_IMAGES + 3): # go a bit past the last frame
             animObj.togglePause()
-            time.sleep(BOLT_DURATIONS)
+            time.sleep(BOLT_DURATIONS / 1000.0)
             animObj.togglePause()
             if i >= NUM_BOLT_IMAGES:
                 self.assertEqual(NUM_BOLT_IMAGES - 1, animObj.currentFrameNum) # with looping off, the currentFrameNum does not advance after the last frame
@@ -338,7 +338,7 @@ class TestGeneral(unittest.TestCase):
         animObj = getTestAnimObj()
         self.assertEqual((BOLT_WIDTH, BOLT_HEIGHT), animObj.getMaxSize())
 
-        mixedSizesObj = pyganim.PygAnimation([(pygame.Surface((100, 10)), 1), (pygame.Surface((10, 200)), 1)])
+        mixedSizesObj = pyganim.PygAnimation([(pygame.Surface((100, 10)), 1), (pygame.Surface((10, 200)), 1000)])
         self.assertEqual((100, 200), mixedSizesObj.getMaxSize())
 
 
@@ -347,7 +347,7 @@ class TestGeneral(unittest.TestCase):
         r = animObj.getRect()
         self.assertEqual((BOLT_WIDTH, BOLT_HEIGHT), r.size)
 
-        mixedSizesObj = pyganim.PygAnimation([(pygame.Surface((100, 10)), 1), (pygame.Surface((10, 200)), 1)])
+        mixedSizesObj = pyganim.PygAnimation([(pygame.Surface((100, 10)), 1), (pygame.Surface((10, 200)), 1000)])
         r = mixedSizesObj.getRect()
         self.assertEqual((100, 200), r.size)
 
@@ -365,14 +365,14 @@ class TestGeneral(unittest.TestCase):
         time.sleep(0.2)
         animObj.pause()
         origElapsed = animObj.elapsed
-        animObj.rewind(0.1)
+        animObj.rewind(100)
         self.assertEqual(animObj.elapsed, origElapsed - 100)
 
 
     def test_fastForward(self):
         animObj = getTestAnimObj()
         self.assertEqual(animObj.state, pyganim.STOPPED)
-        animObj.fastForward(0.375)
+        animObj.fastForward(375)
         self.assertEqual(animObj.elapsed, 375)
         self.assertEqual(animObj.state, pyganim.PAUSED)
 
@@ -381,7 +381,7 @@ class TestGeneral(unittest.TestCase):
         time.sleep(0.2)
         animObj.pause()
         origElapsed = animObj.elapsed
-        animObj.rewind(0.1)
+        animObj.rewind(100)
         self.assertEqual(animObj.elapsed, origElapsed - 100)
 
     def test_loadingAnimatedGif(self):
