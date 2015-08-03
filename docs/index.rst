@@ -13,7 +13,7 @@ Contents:
 
    install.rst
    basics.rst
-   spritesheetsgifs.rst
+   spritesheets.rst
    transformations.rst
    unittests.rst
 

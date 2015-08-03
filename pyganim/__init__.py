@@ -53,10 +53,12 @@ def getImagesFromSpriteSheet(filename, width=None, height=None, rows=None, cols=
     argsType = '' # there should be exactly 1 set of arguments passed (i.e. don't pass width/height AND rows/cols)
     if (width is not None or height is not None) and (argsType == ''):
         argsType = 'width/height'
+        assert width is not None and height is not None, 'Both width and height must be specified'
         assert type(width) == int and width > 0, 'width arg must be a non-zero positive integer'
         assert type(height) == int and height > 0, 'height arg must be a non-zero positive integer'
     if (rows is not None or cols is not None) and (argsType == ''):
         argsType = 'rows/cols'
+        assert rows is not None and cols is not None, 'Both rows and cols must be specified'
         assert type(rows) == int and rows > 0, 'rows arg must be a non-zero positive integer'
         assert type(cols) == int and cols > 0, 'cols arg must be a non-zero positive integer'
     if (rects is not None) and (argsType == ''):

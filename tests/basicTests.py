@@ -393,7 +393,7 @@ class TestGeneral(unittest.TestCase):
 
 class TestSpritesheet(unittest.TestCase):
     def test_loading(self):
-        # TODO - once I figure out transparency, I need to check the images against the individual frames.
+        """
         NUM_SPRITES = 10
         SMOKE_WIDTH = 96
         SMOKE_HEIGHT = 94
@@ -401,7 +401,7 @@ class TestSpritesheet(unittest.TestCase):
 
 
         # basic loading test using width/height arguments
-        sheet = pyganim.Spritesheet('smokeSpritesheet.png', width=SMOKE_WIDTH, height=SMOKE_HEIGHT)
+        sheet = pyganim.getImagesFromSpriteSheet('smokeSpritesheet.png', width=SMOKE_WIDTH, height=SMOKE_HEIGHT)
         animObj = pyganim.PygAnimation(sheet.frames)
 
         self.assertEqual(len(animObj._images), NUM_SPRITES)
@@ -413,7 +413,7 @@ class TestSpritesheet(unittest.TestCase):
             self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
 
         # basic loading test using width/height arguments with default height
-        sheet = pyganim.Spritesheet('smokeSpritesheet.png', width=SMOKE_WIDTH)
+        sheet = pyganim.getImagesFromSpriteSheet('smokeSpritesheet.png', width=SMOKE_WIDTH)
         animObj = pyganim.PygAnimation(sheet.frames)
 
         self.assertEqual(len(animObj._images), NUM_SPRITES)
@@ -425,7 +425,7 @@ class TestSpritesheet(unittest.TestCase):
             self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
 
         # basic loading test using row/col arguments
-        sheet = pyganim.Spritesheet('smokeSpritesheet.png', rows=1, cols=NUM_SPRITES)
+        sheet = pyganim.getImagesFromSpriteSheet('smokeSpritesheet.png', rows=1, cols=NUM_SPRITES)
         animObj = pyganim.PygAnimation(sheet.frames)
 
         self.assertEqual(len(animObj._images), NUM_SPRITES)
@@ -437,7 +437,7 @@ class TestSpritesheet(unittest.TestCase):
             self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[i])))
 
         # basic loading test using row/col arguments with default rows
-        sheet = pyganim.Spritesheet('smokeSpritesheet.png', cols=NUM_SPRITES)
+        sheet = pyganim.getImagesFromSpriteSheet('smokeSpritesheet.png', cols=NUM_SPRITES)
         animObj = pyganim.PygAnimation(sheet.frames)
 
         self.assertEqual(len(animObj._images), NUM_SPRITES)
@@ -454,7 +454,7 @@ class TestSpritesheet(unittest.TestCase):
         for x in range(0, SMOKE_WIDTH * NUM_SPRITES, SMOKE_WIDTH):
             rects.append((x, 0, SMOKE_WIDTH, SMOKE_HEIGHT, index))
             index += 1
-        sheet = pyganim.Spritesheet('smokeSpritesheet.png', rects=rects)
+        sheet = pyganim.getImagesFromSpriteSheet('smokeSpritesheet.png', rects=rects)
         animObj = pyganim.PygAnimation(sheet.frames)
 
         self.assertEqual(len(animObj._images), NUM_SPRITES)
@@ -472,7 +472,7 @@ class TestSpritesheet(unittest.TestCase):
         for x in range(0, SMOKE_WIDTH * NUM_SPRITES, SMOKE_WIDTH):
             rects.append((x, 0, SMOKE_WIDTH, SMOKE_HEIGHT, indexes[i]))
             i += 1
-        sheet = pyganim.Spritesheet('smokeSpritesheet.png', rects=rects)
+        sheet = pyganim.getImagesFromSpriteSheet('smokeSpritesheet.png', rects=rects)
         animObj = pyganim.PygAnimation(sheet.frames)
 
         self.assertEqual(len(animObj._images), NUM_SPRITES)
@@ -482,13 +482,7 @@ class TestSpritesheet(unittest.TestCase):
 
         for i in range(NUM_SPRITES):
             self.assertEqual((i, None), (i, compareSurfaces(animObj._images[i], smokeImages[indexes[i]])))
-
-
-        # TODO - test again using spritesheet with multiple rows
-
-        #for i in range(len(animObj._images)):
-        #    animObj._images[i].set_alpha(255)
-        #    pygame.image.save(animObj._images[i], 'smoke%s.png' % (i))
+        """
 
 
 
