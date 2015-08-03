@@ -1,4 +1,4 @@
-# Pyganim (pyganim.py, ver 0.9.0)
+# Pyganim
 # A sprite animation module for Pygame.
 #
 # By Al Sweigart al@inventwithpython.com
@@ -20,7 +20,6 @@ __version__ = '0.9.1'
 
 import pygame
 import time
-import sys
 import os
 
 
