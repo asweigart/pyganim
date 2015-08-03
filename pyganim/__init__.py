@@ -16,7 +16,7 @@
 # TODO: Feature idea: if the same image file is specified, re-use the Surface object. (Make this optional though.)
 # TODO: Dynamically change durations and number of frames.
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 import pygame
 import time
@@ -41,116 +41,71 @@ SE = SOUTHEAST = 'se'
 
 TIME_FUNC = lambda: int(time.time() * 1000)
 
-class Spritesheet(object):
-    def __init__(self, filename, width=None, height=None, rows=None, cols=None, rects=None, durations=1000):
-        """Loads several sprites from a single image file (a "spritesheet").
+def getImagesFromSpriteSheet(filename, width=None, height=None, rows=None, cols=None, rects=None):
+    """Loads several sprites from a single image file (a "spritesheet").
 
-        One (and only one) of the following parameters should be specified:
-            * width & height of each sprite (all must be the same size)
-            * number of rows and columns of sprites (all must be the same size)
-            * rects, which is a list of tuples formatted as (pygame.Rect, index) or (left, top, width, height. index)
-        """
+    One (and only one) of the following parameters should be specified:
+        * width & height of each sprite (all must be the same size)
+        * number of rows and columns of sprites (all must be the same size)
+        * rects, which is a list of tuples formatted as (pygame.Rect, index) or (left, top, width, height)
+    """
 
-        argsPassed = 0 # there should be exactly 1 set of arguments passed (i.e. don't pass width/height AND rows/cols)
-        if (width is not None or height is not None):
-            argsPassed += 1
-        if (rows is not None or cols is not None):
-            argsPassed += 1
-        if (rects is not None):
-            argsPassed += 1
-        if argsPassed != 1:
-            raise ValueError('Only pass one set of args of: width/height, rows/cols, rects')
+    argsType = '' # there should be exactly 1 set of arguments passed (i.e. don't pass width/height AND rows/cols)
+    if (width is not None or height is not None) and (argsType == ''):
+        argsType = 'width/height'
+        assert type(width) == int and width > 0, 'width arg must be a non-zero positive integer'
+        assert type(height) == int and height > 0, 'height arg must be a non-zero positive integer'
+    if (rows is not None or cols is not None) and (argsType == ''):
+        argsType = 'rows/cols'
+        assert type(rows) == int and rows > 0, 'rows arg must be a non-zero positive integer'
+        assert type(cols) == int and cols > 0, 'cols arg must be a non-zero positive integer'
+    if (rects is not None) and (argsType == ''):
+        argsType = 'rects'
+        for i, rect in enumerate(rects):
+            assert len(rect) == 4, 'rect at index %s is not a sequence of four ints: (left, top, width, height)' % (i)
 
-        if rects is not None:
-            indexesUsed = [False] * len(rects)
+            assert (type(rect[0]), type(rect[1]), type(rect[2]), type(rect[3])) == (int, int, int, int), 'rect '
+    if argsType == '':
+        raise ValueError('Only pass one set of args: width & height, rows & cols, *or* rects')
 
-            for rect in rects:
-                assert len(rect) in (2, 5), '"rect" argument must be (pygame.Rect, index) or (left, top, width, height, index), not length of %s.' % (len(rects))
-                if len(rect) == 2:
-                    assert type(rect[0]) == type(pygame.Rect((1,1,1,1))), 'First item in rect tuple must be pygame.Rect object'
-                    assert type(rect[1]) == int, 'Second item in rect tuple must by int'
-                    _rect, index = rect
-                    if indexesUsed[index]:
-                        raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
-                    indexesUsed[index] = True
-                elif len(rect) == 5:
-                    assert type(rect[4]) == int, 'Fifth item in rect tuple must by int'
-                    _x, _y, _width, _height, index = rect
-                    if indexesUsed[index]:
-                        raise ValueError('The rects argument has multiple items with %s for the index. Indexes must be unique.' % (index))
-                    indexesUsed[index] = True
-            if False in indexesUsed:
-                raise ValueError('The rects argument does not have an %s index.' % (indexesUsed.index(False)))
+    sheetImage = pygame.image.load(filename)
 
+    if argsType == 'width/height':
+        for y in range(0, sheetImage.get_height(), (sheetImage.get_height() // height)):
+            if y + height > sheetImage.get_height():
+                continue
+            for x in range(0, sheetImage.get_width(), (sheetImage.get_width() // width)):
+                if x + width > sheetImage.get_width():
+                    continue
 
-        sheet = pygame.image.load(filename)
-        if (width is not None or height is not None):
-            if width is None:
-                width = sheet.get_width() # defaults to full width of sheet
-            else:
-                width = int(width)
-            if height is None:
-                height = sheet.get_height() # defaults to full height of sheet
-            else:
-                height = int(height)
+                rects.append((x, y, width, height))
 
-            if sheet.get_width() % width != 0:
-                raise ValueError('Sheet width of %s is not evenly divisible by %s.' % (sheet.get_width(), width))
-            if sheet.get_height() % height != 0:
-                raise ValueError('Sheet height of %s is not evenly divisible by %s.' % (sheet.get_height(), height))
+    if argsType == 'rows/cols':
+        spriteWidth = sheetImage.get_width() // cols
+        spriteHeight = sheetImage.get_height() // rows
 
+        for y in range(0, sheetImage.get_height(), spriteHeight):
+            if y + spriteHeight > sheetImage.get_height():
+                continue
+            for x in range(0, sheetImage.get_width(), spriteWidth):
+                if x + spriteWidth > sheetImage.get_width():
+                    continue
 
-        if (rows is not None or cols is not None):
-            # If the rows/cols parameters were specified, set the defaults and validate, and set width/height (which will be used to fake the rects argument)
-            if rows is None:
-                rows = 1
-            else:
-                rows = int(rows)
-            if cols is None:
-                cols = 1
-            else:
-                cols = int(cols)
+                rects.append((x, y, spriteWidth, spriteHeight))
 
-            if sheet.get_height() % rows != 0:
-                raise ValueError('Sheet height of %s is not evenly divisible into %s rows.' % (sheet.get_height(), rows))
-            if sheet.get_width() % cols != 0:
-                raise ValueError('Sheet width of %s is not evenly divisible into %s columns.' % (sheet.get_width(), cols))
+    # create a list of Surface objects from the sprite sheet
+    returnedSurfaces = []
+    for rect in rects:
+        surf = pygame.Surface((rect[2], rect[3]), 0, sheetImage) # create Surface with width/height in rect
+        surf.blit(sheetImage, (0, 0), rect, pygame.BLEND_RGBA_ADD)
+        returnedSurfaces.append(surf)
 
-            width = int(sheet.get_width() / cols)
-            height = int(sheet.get_height() / rows)
+    return returnedSurfaces
 
 
-        if rects is None:
-            # if rects argument was not provided, use the width/height or rows/cols arguments to generate one.
-            rects = []
-            index = 0
-            for x in range(0, sheet.get_width(), width):
-                for y in range(0, sheet.get_height(), height):
-                    rects.append((x, y, width, height, index))
-                    index += 1
-
-        if type(durations) in (int, float):
-            # if durations argument was an int or float, convert it to a list of those values.
-            durations = [durations] * len(rects)
-
-        if len(rects) != len(durations):
-            raise ValueError('Length of durations (%s) must equal number of rects in rects (%s).' % (len(durations), len(rects)))
-
-        self.sprites = []
-        spritesheet = pygame.image.load(filename)
-        for x, y, width, height, index in rects:
-            surf = pygame.Surface((width, height)) # TODO - need transparency support
-            surf.blit(spritesheet, (0, 0), pygame.Rect(x, y, width, height))
-            self.sprites.append(surf)
-
-        self.frames = []
-        for i in range(len(self.sprites)):
-            self.frames.append((self.sprites[i], durations[i]))
-
-        self.durations = durations
 
 
-class PygAnimation(object):
+class PygAnimation():
     def __init__(self, frames, loop=True):
         # Constructor function for the animation object. Starts off in the STOPPED state.
         #
