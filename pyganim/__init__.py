@@ -73,6 +73,7 @@ def getImagesFromSpriteSheet(filename, width=None, height=None, rows=None, cols=
     sheetImage = pygame.image.load(filename)
 
     if argsType == 'width/height':
+        rects = []
         for y in range(0, sheetImage.get_height(), (sheetImage.get_height() // height)):
             if y + height > sheetImage.get_height():
                 continue
@@ -83,6 +84,7 @@ def getImagesFromSpriteSheet(filename, width=None, height=None, rows=None, cols=
                 rects.append((x, y, width, height))
 
     if argsType == 'rows/cols':
+        rects = []
         spriteWidth = sheetImage.get_width() // cols
         spriteHeight = sheetImage.get_height() // rows
 
