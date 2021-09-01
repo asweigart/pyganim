@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='Pyganim',
-    version='0.9.2',
+    version=__import__('pyganim').__version__,
     url='http://inventwithpython.com/pyganim',
     author='Al Sweigart',
     author_email='al@inventwithpython.com',

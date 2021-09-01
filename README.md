@@ -15,3 +15,8 @@ http://inventwithpython.com/pyganim/reference.html
 
 Tutorial:
 http://inventwithpython.com/pyganim/tutorial.html
+
+Support
+-------
+
+If you find this project helpful and would like to support its development, [consider donating to its creator on Patreon](https://www.patreon.com/AlSweigart).

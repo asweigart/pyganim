@@ -41,6 +41,8 @@ SE = SOUTHEAST = 'se'
 
 TIME_FUNC = lambda: int(time.time() * 1000)
 
+DEFAULT_DURATION = 100 # 100ms
+
 def getImagesFromSpriteSheet(filename, width=None, height=None, rows=None, cols=None, rects=None):
     """Loads several sprites from a single image file (a "spritesheet").
 
@@ -156,6 +158,9 @@ class PygAnimation():
                 im.save('.temp_pyganim.gif')
                 frames.append((pygame.image.load('.temp_pyganim.gif'), im.info['duration'])) # gif duration is already in milliseconds
                 os.unlink('.temp_pyganim.gif')
+        elif len(frames) > 0 and type(frames[0]) == str:
+            # frames is a list of strings (image filenames without durations)
+            frames = list(zip(frames, [DEFAULT_DURATION] * len(frames))) # add default duration
 
         if frames != '_copy': # ('_copy' is passed for frames by the getCopies() method)
             self.numFrames = len(frames)

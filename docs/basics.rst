@@ -83,8 +83,30 @@ The source code is:
 
 Other examples exist in the `/examples` folder of the repo at https://github.com/asweigart/pyganim
 
+Loading Animated Gifs
+=====================
+
+To create a PygAnimation object from an animated gif, pass the gif's filename to the PygAnimation constructor:
+
+.. code:: python
+
+    animObj = pyganim.PygAnimation('banana.gif')
+
+The durations for each frame will match those in the gif.
+
+Drawing the PygAnimation Object
+===============================
+
+To draw the PygAnimation object to a `pygame.Surface`, first call the `play()`  call the `blit()` method and pass it the Surface object and a tuple of XY coordinates for where on the Surface the animation object will be drawn. Depending on the system time that `play()` and `blit()` were called, the appropriate frame will be drawn.
+
 =================
 Play, Pause, Stop
 =================
 
-PygAnimation objects have `play()`, `pause()`, and `stop()` methods. The
+`PygAnimation` objects are always in one of the three possible states:
+
+* Playing
+* Paused
+* Stopped
+
+These objects also have `play()`, `pause()`, and `stop()` methods. When the `PygAnimation` object is first created, it is in the stopped state. Calling `blit()` on a stopped `PygAnimation` object
